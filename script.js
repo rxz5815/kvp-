@@ -1,115 +1,134 @@
-:root {
-  --primary-color: #ff4d4f; /* 搜索按钮颜色 */
-  --text-color: #ffffff;
-  --glass-bg: rgba(0, 0, 0, 0.45);
-  --glass-border: rgba(255, 255, 255, 0.1);
-}
+document。addEventListener('DOMContentLoaded', function() {
+  initBackground();
+  fetchLinks();
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: var(--text-color);
-  min-height: 100vh;
-  background-color: #1a1a1a;
-}
+  const modal = document.getElementById('modal-overlay');
+  const searchInput = document.getElementById('search-input');
+  
+  // --- 背景逻辑 ---
+  window.setBackground = function(type) {
+    let bg = type === 'random' ? `https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=80&rand=${Math.random()}` : 'linear-gradient(135deg, #2c3e50 0%, #000 100%)';
+    applyBg(bg);
+    localStorage.setItem('nav_bg', bg);
+  };
 
-/* 背景容器 */
-#bg-container {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  z-index: -1;
-  transition: 1s ease;
-}
-#bg-container img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  filter: brightness(0.7); /* 稍微压暗背景，保护视力 */
-}
+  function applyBg(val) {
+    const container = document.getElementById('bg-container');
+    if (val.startsWith('http')) {
+      container.innerHTML = `<img src="${val}" style="opacity:0; transition:1s" onload="this.style.opacity=1">`;
+    } else {
+      container.innerHTML = ''; document.body.style.background = val;
+    }
+  }
 
-/* 玻璃拟态 UI 基准 */
-。search-bar, .link-card, nav, .modal-content {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-}
+  function initBackground() {
+    applyBg(localStorage.getItem('nav_bg') || 'linear-gradient(135deg, #1a1a1a 0%, #000 100%)');
+  }
 
-header { padding: 40px 20px 10px; text-align: center; }
-header h1 { margin-bottom: 20px; font-weight: 300; letter-spacing: 2px; }
+  // --- 搜索逻辑 ---
+  let currentEngine = "https://www.baidu.com/s?wd=";
+  let isInternal = false;
 
-/* 搜索栏样式 */
-。search-container { max-width: 700px; margin: 0 auto 40px; }
-。search-tabs { margin-bottom: 12px; }
-。search-tab { margin: 0 15px; cursor: pointer; opacity: 0.6; position: relative; padding-bottom: 5px; }
-。search-tab.active { opacity: 1; border-bottom: 2px solid #fff; font-weight: bold; }
+  document.querySelectorAll('.engine').forEach(el => {
+    el.onclick = function() {
+      document.querySelectorAll('.engine').forEach(e => e.classList.remove('active'));
+      this.classList.add('active');
+      currentEngine = this.dataset.url;
+      if(!isInternal) searchInput.placeholder = this.innerText + "一下";
+    };
+  });
 
-。search-bar {
-  display: flex; padding: 5px 5px 5px 20px; border-radius: 12px; align-items: center;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-}
-。search-bar input {
-  flex: 1; background: transparent; border: none; color: #fff; font-size: 18px; outline: none; padding: 12px 0;
-}
-。search-bar button {
-  background: var(--primary-color); border: none; color: white;
-  width: 45px; height: 45px; border-radius: 10px; cursor: pointer; transition: 0.2s;
-}
-。search-bar button:hover { transform: scale(1.05); }
+  document.querySelectorAll('.search-tab').forEach(tab => {
+    tab.onclick = function() {
+      document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      isInternal = (this.dataset.type === 'internal');
+      searchInput.placeholder = isInternal ? "搜索站内..." : "百度一下";
+    };
+  });
 
-。search-engines { margin-top: 12px; display: flex; justify-content: center; gap: 20px; font-size: 14px; }
-。engine { cursor: pointer; opacity: 0.7; }
-。engine.active { opacity: 1; font-weight: bold; text-decoration: underline; }
+  const doSearch = () => {
+    const q = searchInput.value.trim();
+    if (!q) return;
+    if (isInternal) {
+      document.querySelectorAll('.link-card').forEach(card => {
+        card.style.display = card.innerText.toLowerCase().includes(q.toLowerCase()) ? 'block' : 'none';
+      });
+    } else {
+      window.open(currentEngine + encodeURIComponent(q), '_blank');
+    }
+  };
+  document.getElementById('search-btn').onclick = doSearch;
+  searchInput.onkeypress = (e) => { if(e.key==='Enter') doSearch(); };
 
-/* 导航样式 */
-nav { position: sticky; top: 0; z-index: 100; padding: 10px 0; margin-bottom: 20px; }
-nav ul { list-style: none; display: flex; justify-content: center; flex-wrap: wrap; margin: 0; padding: 0; }
-nav a { color: #fff; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-size: 14px; transition: 0.3s; }
-nav a:hover { background: rgba(255,255,255,0.2); }
+  // --- 弹窗逻辑 ---
+  document.getElementById('toggle-edit-btn').onclick = () => modal.style.display = 'flex';
+  document.querySelector('.close-modal').onclick = () => modal.style.display = 'none';
+  window.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
 
-/* 链接网格 */
-main { max-width: 1200px; margin: 0 auto; padding: 20px; }
-。category-title { border-left: 4px solid var(--primary-color); padding-left: 12px; margin: 40px 0 20px; font-size: 20px; }
-。link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 20px; }
+  document.addEventListener('contextmenu', (e) => {
+    if(e.target.tagName === 'BODY' || e.target.id === 'bg-container') {
+      e.preventDefault(); modal.style.display = 'flex';
+    }
+  });
 
-。link-card {
-  padding: 18px 10px; border-radius: 15px; text-align: center; transition: 0.3s; cursor: pointer;
-}
-。link-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.15); }
-。link-card img { width: 36px; height: 36px; margin-bottom: 10px; border-radius: 8px; }
-。link-card h3 { font-size: 14px; margin: 0; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  // 自动图标
+  document.getElementById('url-input').oninput = function() {
+    try {
+      const host = new URL(this.value).hostname;
+      document.getElementById('icon-preview').src = `https://www.google.com/s2/favicons?domain=${host}&sz=64`;
+    } catch(e){}
+  };
 
-/* 弹窗样式 */
-。modal-overlay {
-  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;
-}
-。modal-content {
-  width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; position: relative;
-}
-。close-modal { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; }
+  // --- 数据渲染 ---
+  async function fetchLinks() {
+    const res = await fetch('/api/links');
+    const links = await res.json();
+    const nav = document.getElementById('nav-menu');
+    const main = document.getElementById('main-content');
+    const dlist = document.getElementById('category-list');
+    
+    nav.innerHTML = ''; main.innerHTML = ''; dlist.innerHTML = '';
+    
+    const grouped = links.reduce((acc, obj) => {
+      acc[obj.category] = acc[obj.category] || [];
+      acc[obj.category].push(obj);
+      return acc;
+    }, {});
 
-/* 表单与按钮 */
-。settings-group { margin-bottom: 20px; }
-。bg-options { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-。action-btn { 
-  background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 6px 12px; 
-  border-radius: 6px; cursor: pointer; font-size: 13px; 
-}
-。custom-bg-box { display: flex; width: 100%; gap: 5px; margin-top: 5px; }
-。custom-bg-box input { flex: 1; background: rgba(0,0,0,0.2); border: 1px solid #555; color: #fff; border-radius: 5px; padding: 5px; }
+    Object.keys(grouped).forEach(cat => {
+      nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
+      dlist.innerHTML += `<option value="${cat}">`;
+      const sec = document.createElement('section');
+      sec.id = cat;
+      sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid"></div>`;
+      main.appendChild(sec);
+      const grid = sec.querySelector('.link-grid');
+      grouped[cat].forEach(link => {
+        const card = document.createElement('div');
+        card.className = 'link-card';
+        card.innerHTML = `<img src="${link.icon.startsWith('http') ? link.icon : 'https://www.google.com/s2/favicons?domain='+new URL(link.url).hostname+'&sz=64'}"><h3>${link.title}</h3>`;
+        card.onclick = () => window.open(link.url, '_blank');
+        grid.appendChild(card);
+      });
+    });
+  }
 
-#link-form input {
-  display: block; width: 100%; margin-bottom: 15px; padding: 12px; 
-  background: rgba(0,0,0,0.3); border: 1px solid #444; color: #fff; border-radius: 8px; box-sizing: border-box;
-}
-。icon-preview-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 12px; opacity: 0.8; }
-。icon-preview-wrapper img { width: 32px; height: 32px; border-radius: 5px; }
-。save-btn { width: 100%; padding: 12px; background: var(--primary-color); border: none; color: #fff; border-radius: 8px; font-weight: bold; cursor: pointer; }
+  document.getElementById('link-form').onsubmit = async function(e) {
+    e.preventDefault();
+    const fd = new FormData(this);
+    const data = Object.fromEntries(fd);
+    const fav = `https://www.google.com/s2/favicons?domain=${new URL(data.url).hostname}&sz=64`;
 
-#toggle-edit {
-  position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px; border-radius: 50%;
-  background: var(--primary-color); color: #fff; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-}
-
-footer { text-align: center; padding: 40px; opacity: 0.6; font-size: 12px; }
+    const res = await fetch('/api/links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        password: data.edit_password,
+        link: { ...data, icon: fav }
+      })
+    });
+    if(res.ok) { alert('成功'); modal.style.display='none'; fetchLinks(); }
+    else { alert('失败，请检查密码'); }
+  };
+});
