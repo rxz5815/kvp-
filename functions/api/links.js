@@ -18,7 +18,6 @@ export async function onRequest(context) {
   } else if (action === 'deleteCategory') {
     links = links.filter(l => l.category !== oldCategory);
   } else {
-    // Save or Update
     const idx = links.findIndex(l => l.url === link.url);
     if (idx > -1) links[idx] = link;
     else links.push(link);
