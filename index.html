@@ -12,9 +12,7 @@
 
   <div class="wrapper">
     <header>
-      <!-- 问题1-4: 标题增加跳转 -->
       <a href="/" class="logo-link"><h1>WebNav Hub</h1></a>
-      
       <div class="search-area main-search">
         <div class="search-tabs">
           <div class="tab" data-type="internal">站内</div>
@@ -24,7 +22,6 @@
           <input type="text" class="search-input" placeholder="百度一下" autocomplete="off">
           <button class="search-trigger-btn"><i class="fas fa-search"></i></button>
         </div>
-        <!-- 问题1-1: 站内隐藏此处 -->
         <div class="search-engines">
           <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
           <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
@@ -46,17 +43,16 @@
     <button class="side-btn" id="btn-cat-admin"><i class="fas fa-folder"></i></button>
   </div>
 
-  <!-- 搜索弹窗 -->
   <div class="modal" id="modal-search">
     <div class="modal-overlay"></div>
     <div class="modal-body search-modal-content">
-      <div class="search-area modal-search">
+      <div class="search-area modal-inner-search">
         <div class="search-tabs">
           <div class="tab" data-type="internal">站内</div>
           <div class="tab active" data-type="web">搜索</div>
         </div>
         <div class="search-pill">
-          <input type="text" class="search-input" placeholder="百度一下">
+          <input type="text" class="search-input" placeholder="快速搜索站点...">
           <button class="search-trigger-btn"><i class="fas fa-search"></i></button>
         </div>
         <div class="search-engines">
@@ -68,22 +64,20 @@
     </div>
   </div>
 
-  <!-- 编辑站点弹窗 -->
   <div class="modal" id="modal-link">
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
       <span class="close-modal">&times;</span>
       <h3 class="modal-title">编辑站点</h3>
+      <div class="modal-spacer"></div>
       <form id="link-form">
         <input type="password" name="password" id="main-pwd" placeholder="管理密码" required>
-        <div class="modal-spacer"></div>
         <div class="modal-row">
             <input type="text" name="category" id="in-cat" placeholder="分类名称" required>
             <select id="cat-hint" onchange="document.getElementById('in-cat').value=this.value"></select>
         </div>
-        <!-- 问题4-2: 宽度对齐 -->
-        <input type="text" name="title" id="in-title" placeholder="站点标题" class="full-width" required>
-        <div class="modal-row url-row">
+        <input type="text" name="title" id="in-title" placeholder="站点标题" style="width:100%;" required>
+        <div class="modal-row" style="margin-top:15px;">
             <input type="url" name="url" id="in-url" placeholder="https://..." required>
             <div class="icon-box"><img id="prev-img" src=""><i class="fas fa-globe" id="def-icon"></i></div>
         </div>
@@ -92,7 +86,6 @@
     </div>
   </div>
 
-  <!-- 分类管理弹窗 -->
   <div class="modal" id="modal-cat">
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
@@ -101,8 +94,8 @@
       <div class="modal-spacer"></div>
       <div id="cat-list-box"></div>
       <div class="add-cat-footer">
-          <input type="text" id="new-cat-input" placeholder="输入新分类名称">
-          <button class="btn-mini blue" onclick="addNewCategory()">+ 添加分类</button>
+          <input type="text" id="new-cat-input" placeholder="新分类名称">
+          <button class="btn-mini blue" onclick="addNewCategory()">+ 添加</button>
       </div>
     </div>
   </div>
