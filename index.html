@@ -19,61 +19,78 @@
           <div class="tab active" data-type="web">搜索</div>
         </div>
         <div class="search-bar">
-          <input type="text" id="search-input" placeholder="百度一下" autofocus autocomplete="off">
-          <button id="search-btn"><i class="fas fa-search"></i></button>
+          <input type="text" id="main-search-input" placeholder="百度一下" autocomplete="off">
+          <button onclick="executeSearch('main')"><i class="fas fa-search"></i></button>
         </div>
-        <div class="search-engines" id="engine-list">
+        <div class="search-engines">
           <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
           <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
           <span class="engine" data-url="https://www.bing.com/search?q=">Bing</span>
         </div>
       </div>
     </header>
-
     <nav id="nav-bar"><ul></ul></nav>
     <main id="main-content"></main>
   </div>
 
-  <!-- 侧边栏工具 -->
+  <!-- 6按钮侧边栏 -->
   <div class="side-toolbar">
-    <button class="side-btn" id="go-top" title="回到顶部"><i class="fas fa-chevron-up"></i></button>
-    <button class="side-btn" id="open-search" style="display:none;"><i class="fas fa-search"></i></button>
-    <button class="side-btn" id="add-site" title="添加站点"><i class="fas fa-plus"></i></button>
-    
-    <div class="bg-menu-wrapper">
-        <button class="side-btn"><i class="fas fa-image"></i></button>
-        <div class="bg-sub-menu">
-            <div class="bg-ball" onclick="changeBg('grey')" title="谷歌灰">G</div>
-            <div class="bg-ball" onclick="changeBg('grad1')" title="渐变蓝">B</div>
-            <div class="bg-ball" onclick="changeBg('grad2')" title="渐变紫">P</div>
-            <div class="bg-ball" onclick="changeBg('random')" title="随机风景">R</div>
-            <div class="bg-ball" onclick="changeBg('custom')" title="自定义">C</div>
-        </div>
-    </div>
-    
-    <button class="side-btn" id="manage-cat" title="分类管理"><i class="fas fa-folder"></i></button>
+    <button class="side-btn" id="btn-top" style="display:none;"><i class="fas fa-chevron-up"></i></button>
+    <button class="side-btn" id="btn-float-search" style="display:none;"><i class="fas fa-search"></i></button>
+    <button class="side-btn" id="btn-add-site"><i class="fas fa-plus"></i></button>
+    <button class="side-btn" id="btn-toggle-grad" title="切换渐变"><i class="fas fa-palette"></i></button>
+    <button class="side-btn" id="btn-random-bg" title="随机背景"><i class="fas fa-image"></i></button>
+    <button class="side-btn" id="btn-manage-cat"><i class="fas fa-folder"></i></button>
   </div>
 
-  <!-- 编辑弹窗 -->
-  <div class="modal" id="link-modal">
+  <!-- 独立搜索弹窗 -->
+  <div class="modal" id="modal-search">
+    <div class="modal-body search-modal-body">
+      <div class="search-bar">
+        <input type="text" id="modal-search-input" placeholder="快速搜索站点...">
+        <button onclick="executeSearch('modal')"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 站点编辑弹窗 -->
+  <div class="modal" id="modal-link">
     <div class="modal-body">
-      <div class="modal-head"><h3>编辑站点</h3><span class="close-modal">&times;</span></div>
+      <span class="close-btn">&times;</span>
+      <h3>编辑站点</h3>
       <form id="link-form">
-        <input type="password" name="password" placeholder="管理密码" required>
-        <div style="display:flex; gap:10px;">
-            <input type="text" name="category" id="cat-input" placeholder="分类" required style="flex:1">
-            <select id="cat-hint" style="width:120px;" onchange="document.getElementById('cat-input').value=this.value">
-                <option value="">快捷选择</option>
-            </select>
+        <div id="pwd-field-wrap"><input type="password" name="password" id="main-pwd" placeholder="管理密码"></div>
+        <div class="input-row">
+          <input type="text" name="category" id="in-cat" placeholder="分类名称" required>
+          <select id="cat-hint" onchange="document.getElementById('in-cat').value=this.value"></select>
         </div>
-        <input type="text" name="title" id="title-input" placeholder="站点名称" required>
-        <input type="url" name="url" id="url-input" placeholder="https://..." required>
-        <div class="preview-line">
-            <img id="prev-img" src="">
-            <span>图标自动获取预览</span>
-        </div>
-        <button type="submit" class="save-button">保存站点</button>
+        <input type="text" name="title" id="in-title" placeholder="站点标题" required>
+        <input type="url" name="url" id="in-url" placeholder="https://..." required>
+        <div class="icon-preview"><img id="prev-img" src=""><span>图标预览</span></div>
+        <button type="submit" class="save-btn">保存站点</button>
       </form>
+    </div>
+  </div>
+
+  <!-- 分类管理弹窗 -->
+  <div class="modal" id="modal-cat">
+    <div class="modal-body">
+      <span class="close-btn">&times;</span>
+      <h3>分类管理</h3>
+      <div id="cat-list-container"></div>
+    </div>
+  </div>
+
+  <!-- 确认删除弹窗 -->
+  <div class="modal" id="modal-confirm">
+    <div class="modal-body">
+      <h3>确认操作</h3>
+      <p id="confirm-msg">确定要删除吗？</p>
+      <div id="confirm-pwd-wrap"><input type="password" id="confirm-pwd" placeholder="输入密码确认"></div>
+      <div class="modal-btns">
+        <button class="btn-cancel">取消</button>
+        <button class="btn-confirm-red">确定</button>
+      </div>
     </div>
   </div>
 
