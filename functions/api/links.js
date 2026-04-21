@@ -1,19 +1,24 @@
 export async function onRequest(context) {
   const { request, env } = context;
 
+  // 1. 处理 GET 请求（获取所有链接）
   if (request.method === 'GET') {
     const links = await getLinks(env);
     return new Response(JSON.stringify(links), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } else if (request.method === 'POST') {
+  } 
+  
+  // 2. 处理 POST 请求（保存、修改、删除）
+  else if (request.method === 'POST') {
     const { password, link, action } = await request.json();
     
-    // 验证密码 (确保你在 Cloudflare Dashboard 设置了 EDIT_PASSWORD 环境变量)
+    // 验证密码（必须与 Cloudflare 后台设置的环境变量 EDIT_PASSWORD 一致）
     if (password !== env.EDIT_PASSWORD) {
       return new Response('Unauthorized: Incorrect password', { status: 401 });
     }
     
+    // 判断是删除操作还是保存操作
     if (action === 'delete') {
       await deleteLink(env, link.url);
       return new Response('Link deleted', { status: 200 });
@@ -26,32 +31,35 @@ export async function onRequest(context) {
   return new Response('Not found', { status: 404 });
 }
 
+// 获取链接的工具函数
 async function getLinks(env) {
   const storedLinks = await env.LINKS_KV.get('all_links');
   return storedLinks ? JSON.parse(storedLinks) : getDefaultLinks();
 }
 
+// 保存/修改链接的工具函数
 async function saveLink(env, newLink) {
   const links = await getLinks(env);
   const index = links.findIndex(link => link.url === newLink.url);
   if (index > -1) {
-    links[index] = newLink;
+    links[index] = newLink; // 如果已存在则更新
   } else {
-    links.push(newLink);
+    links.push(newLink); // 不存在则添加
   }
-  await env。LINKS_KV。put('all_links', JSON.stringify(links));
+  await env.LINKS_KV.put('all_links', JSON.stringify(links));
 }
 
-// 新增删除函数
+// 【新增】删除链接的工具函数
 async function deleteLink(env, url) {
   const links = await getLinks(env);
+  // 过滤掉当前 URL 的站点
   const filteredLinks = links.filter(link => link.url !== url);
   await env.LINKS_KV.put('all_links', JSON.stringify(filteredLinks));
 }
 
+// 你的默认初始化数据
 function getDefaultLinks() {
-  // ...保持你原有的那些默认链接不变...
-    return [
+  return [
     // Ai搜索
     { category: 'ai-search', title: 'Google', url: 'https://www.google.com', icon: 'fab fa-google' },
     { category: 'ai-search', title: 'Bing', url: 'https://www.bing.com', icon: 'fab fa-microsoft' },
@@ -66,7 +74,7 @@ function getDefaultLinks() {
     { category: 'ai-search', title: '循证医学UTD', url: 'http://u.90tsg.com/', icon: 'fas fa-clinic-medical' },
     { category: 'ai-search', title: 'medscape', url: 'https://www.medscape.com/', icon: 'fas fa-stethoscope' },
     { category: 'ai-search', title: '免费oaichat', url: 'https://chat.oaichat.cc/', icon: 'fab fa-rocketchat' },
-    { category: 'ai-search', title: 'leonardo.ai绘图', url: 'https://app.leonardo.ai/', icon: 'far fa-.leonardo.ai/', icon: 'far fa-images' },
+    { category: 'ai-search', title: 'leonardo.ai绘图', url: 'https://app.leonardo.ai/', icon: 'far fa-images' },
     { category: 'ai-search', title: 'huggingface', url: 'https://huggingface.co/', icon: 'fas fa-meh-rolling-eyes' },
     { category: 'ai-search', title: 'lmarena', url: 'https://lmarena.ai/', icon: 'fas fa-robot' },
     { category: 'ai-search', title: 'kelaode', url: 'https://kelaode.ai/', icon: 'fas fa-robot' },
@@ -137,6 +145,4 @@ function getDefaultLinks() {
     { category: 'email', title: '临时G邮箱', url: 'https://www.emailnator.com/', icon: 'fas fa-at' },
     { category: 'email', title: '临时谷歌邮箱', url: 'https://www.linshigmail.com/', icon: 'fas fa-mail-bulk' },
   ];
-}
-  return [ { category: 'ai-search', title: 'Google', url: 'https://www.google.com', icon: 'fab fa-google' } ];
 }
