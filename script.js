@@ -1,134 +1,97 @@
-document。addEventListener('DOMContentLoaded', function() {
-  initBackground();
-  fetchLinks();
+/* 基础重置 */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  const modal = document.getElementById('modal-overlay');
-  const searchInput = document.getElementById('search-input');
-  
-  // --- 背景逻辑 ---
-  window.setBackground = function(type) {
-    let bg = type === 'random' ? `https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=80&rand=${Math.random()}` : 'linear-gradient(135deg, #2c3e50 0%, #000 100%)';
-    applyBg(bg);
-    localStorage.setItem('nav_bg', bg);
-  };
+:root {
+  --primary-color: #ff4d4f; /* 搜索按钮红 */
+  --main-text: #ffffff;
+  --glass: rgba(20, 20, 20, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.15);
+}
 
-  function applyBg(val) {
-    const container = document.getElementById('bg-container');
-    if (val.startsWith('http')) {
-      container.innerHTML = `<img src="${val}" style="opacity:0; transition:1s" onload="this.style.opacity=1">`;
-    } else {
-      container.innerHTML = ''; document.body.style.background = val;
-    }
-  }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #0c0c0c;
+  color: var(--main-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-  function initBackground() {
-    applyBg(localStorage.getItem('nav_bg') || 'linear-gradient(135deg, #1a1a1a 0%, #000 100%)');
-  }
+#bg-container {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: -1; transition: 1s;
+}
+#bg-container img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); }
 
-  // --- 搜索逻辑 ---
-  let currentEngine = "https://www.baidu.com/s?wd=";
-  let isInternal = false;
+。wrapper { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
 
-  document.querySelectorAll('.engine').forEach(el => {
-    el.onclick = function() {
-      document.querySelectorAll('.engine').forEach(e => e.classList.remove('active'));
-      this.classList.add('active');
-      currentEngine = this.dataset.url;
-      if(!isInternal) searchInput.placeholder = this.innerText + "一下";
-    };
-  });
+header { padding: 60px 0 20px; text-align: center; }
+header h1 { font-size: 32px; font-weight: 300; margin-bottom: 30px; color: #4facfe; }
 
-  document.querySelectorAll('.search-tab').forEach(tab => {
-    tab.onclick = function() {
-      document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
-      isInternal = (this.dataset.type === 'internal');
-      searchInput.placeholder = isInternal ? "搜索站内..." : "百度一下";
-    };
-  });
+/* 搜索栏 - 严格参考图样 */
+。search-section { max-width: 650px; margin: 0 auto 40px; }
+。search-tabs { margin-bottom: 15px; }
+。search-tab { margin: 0 12px; cursor: pointer; opacity: 0.6; font-size: 16px; position: relative; padding-bottom: 6px; }
+。search-tab.active { opacity: 1; border-bottom: 3px solid #fff; }
 
-  const doSearch = () => {
-    const q = searchInput.value.trim();
-    if (!q) return;
-    if (isInternal) {
-      document.querySelectorAll('.link-card').forEach(card => {
-        card.style.display = card.innerText.toLowerCase().includes(q.toLowerCase()) ? 'block' : 'none';
-      });
-    } else {
-      window.open(currentEngine + encodeURIComponent(q), '_blank');
-    }
-  };
-  document.getElementById('search-btn').onclick = doSearch;
-  searchInput.onkeypress = (e) => { if(e.key==='Enter') doSearch(); };
+。search-bar-box {
+  display: flex; background: rgba(34, 34, 34, 0.9); border-radius: 14px;
+  padding: 6px 6px 6px 20px; align-items: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid var(--glass-border);
+}
+。search-bar-box input {
+  flex: 1; background: transparent; border: none; color: #fff; font-size: 18px; outline: none;
+}
+。search-bar-box button {
+  background: var(--primary-color); border: none; color: white;
+  width: 50px; height: 44px; border-radius: 10px; cursor: pointer; font-size: 18px;
+}
 
-  // --- 弹窗逻辑 ---
-  document.getElementById('toggle-edit-btn').onclick = () => modal.style.display = 'flex';
-  document.querySelector('.close-modal').onclick = () => modal.style.display = 'none';
-  window.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+。search-engines { margin-top: 15px; display: flex; justify-content: center; gap: 18px; font-size: 14px; }
+。engine { cursor: pointer; opacity: 0.7; transition: 0.3s; }
+。engine.active { opacity: 1; font-weight: bold; position: relative; }
+。engine.active::after { content: '▲'; position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 10px; }
 
-  document.addEventListener('contextmenu', (e) => {
-    if(e.target.tagName === 'BODY' || e.target.id === 'bg-container') {
-      e.preventDefault(); modal.style.display = 'flex';
-    }
-  });
+/* 导航 */
+nav { background: var(--glass); backdrop-filter: blur(10px); padding: 10px 0; position: sticky; top: 0; z-index: 100; border-radius: 0 0 15px 15px; }
+nav ul { list-style: none; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+nav a { color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; transition: 0.3s; }
+nav a:hover { background: rgba(255,255,255,0.2); }
 
-  // 自动图标
-  document.getElementById('url-input').oninput = function() {
-    try {
-      const host = new URL(this.value).hostname;
-      document.getElementById('icon-preview').src = `https://www.google.com/s2/favicons?domain=${host}&sz=64`;
-    } catch(e){}
-  };
+/* 主体网格 */
+。category-title { border-left: 4px solid var(--primary-color); padding-left: 12px; margin: 40px 0 20px; font-size: 18px; }
+。link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; }
+。link-card {
+  background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
+  padding: 20px 10px; border-radius: 15px; text-align: center; transition: 0.3s; cursor: pointer;
+}
+。link-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.15); border-color: var(--primary-color); }
+。link-card img { width: 36px; height: 36px; margin-bottom: 10px; border-radius: 8px; }
+。link-card h3 { font-size: 13px; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  // --- 数据渲染 ---
-  async function fetchLinks() {
-    const res = await fetch('/api/links');
-    const links = await res.json();
-    const nav = document.getElementById('nav-menu');
-    const main = document.getElementById('main-content');
-    const dlist = document.getElementById('category-list');
-    
-    nav.innerHTML = ''; main.innerHTML = ''; dlist.innerHTML = '';
-    
-    const grouped = links.reduce((acc, obj) => {
-      acc[obj.category] = acc[obj.category] || [];
-      acc[obj.category].push(obj);
-      return acc;
-    }, {});
+/* 弹窗 - 关键修正 */
+#modal-overlay {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;
+}
+。modal-content {
+  background: #1a1a1a; width: 90%; max-width: 420px; padding: 25px; border-radius: 20px;
+  border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,1);
+}
+。modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+。close-modal { cursor: pointer; font-size: 24px; }
 
-    Object.keys(grouped).forEach(cat => {
-      nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
-      dlist.innerHTML += `<option value="${cat}">`;
-      const sec = document.createElement('section');
-      sec.id = cat;
-      sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid"></div>`;
-      main.appendChild(sec);
-      const grid = sec.querySelector('.link-grid');
-      grouped[cat].forEach(link => {
-        const card = document.createElement('div');
-        card.className = 'link-card';
-        card.innerHTML = `<img src="${link.icon.startsWith('http') ? link.icon : 'https://www.google.com/s2/favicons?domain='+new URL(link.url).hostname+'&sz=64'}"><h3>${link.title}</h3>`;
-        card.onclick = () => window.open(link.url, '_blank');
-        grid.appendChild(card);
-      });
-    });
-  }
+#link-form input {
+  display: block; width: 100%; margin-bottom: 12px; padding: 12px;
+  background: #000; border: 1px solid #333; color: #fff; border-radius: 8px;
+}
+。preview-box { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 12px; }
+。preview-box img { width: 32px; height: 32px; border-radius: 5px; }
+。submit-btn { width: 100%; padding: 12px; background: var(--primary-color); border: none; color: #fff; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-  document.getElementById('link-form').onsubmit = async function(e) {
-    e.preventDefault();
-    const fd = new FormData(this);
-    const data = Object.fromEntries(fd);
-    const fav = `https://www.google.com/s2/favicons?domain=${new URL(data.url).hostname}&sz=64`;
+#toggle-edit-btn {
+  position: fixed; bottom: 30px; right: 30px; width: 56px; height: 56px; border-radius: 50%;
+  background: var(--primary-color); color: #fff; border: none; font-size: 22px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1000;
+}
 
-    const res = await fetch('/api/links', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        password: data.edit_password,
-        link: { ...data, icon: fav }
-      })
-    });
-    if(res.ok) { alert('成功'); modal.style.display='none'; fetchLinks(); }
-    else { alert('失败，请检查密码'); }
-  };
-});
+footer { text-align: center; padding: 50px; opacity: 0.4; font-size: 12px; }
