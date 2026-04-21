@@ -17,7 +17,11 @@ export async function onRequest(context) {
     links = links.map(l => l.category === oldCategory ? { ...l, category: newCategory } : l);
   } else if (action === 'deleteCategory') {
     links = links.filter(l => l.category !== oldCategory);
+  } else if (action === 'addCategory') { // 支持仅添加分类（空占位）
+    links.push({ category: newCategory, title: 'placeholder_hidden', url: 'https://placeholder.temp', icon: '' });
   } else {
+    // 过滤掉占位站点
+    links = links.filter(l => l.title !== 'placeholder_hidden');
     const idx = links.findIndex(l => l.url === link.url);
     if (idx > -1) links[idx] = link;
     else links.push(link);
