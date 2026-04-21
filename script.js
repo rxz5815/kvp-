@@ -1,9 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // === 保底数据（防止 KV 为空时白屏） ===
     const DEFAULT_LINKS = [
         { category: '常用', title: 'Google', url: 'https://www.google.com', icon: 'https://www.google.com/s2/favicons?domain=google.com&sz=64' },
-        { category: '常用', title: 'Baidu', url: 'https://www.baidu.com', icon: 'https://www.google.com/s2/favicons?domain=baidu.com&sz=64' },
-        { category: 'Tools', title: 'GitHub', url: 'https://github.com', icon: 'https://www.google.com/s2/favicons?domain=github.com&sz=64' }
+        { category: '常用', title: 'Baidu', url: 'https://www.baidu.com', icon: 'https://www.google.com/s2/favicons?domain=baidu.com&sz=64' }
     ];
 
     let allLinks = [];
@@ -15,19 +13,16 @@ document.addEventListener('DOMContentLoaded', function() {
         'linear-gradient(135deg, #0f0c29, #302b63, #24243e)'
     ];
 
-    // --- 背景逻辑 ---
     const updateBg = (val, save = true) => {
-        try {
-            const bg = document.getElementById('bg-canvas');
-            if(val.startsWith('http')) bg.style.backgroundImage = `url(${val})`;
-            else bg.style.background = val;
-            if(save) localStorage.setItem('nav_bg_final_v5', val);
-        } catch(e) {}
+        const bg = document.getElementById('bg-canvas');
+        if(val.startsWith('http')) bg.style.backgroundImage = `url(${val})`;
+        else bg.style.background = val;
+        if(save) localStorage.setItem('nav_bg_v6', val);
     };
-    updateBg(localStorage.getItem('nav_bg_final_v5') || grads[0]);
+    updateBg(localStorage.getItem('nav_bg_v6') || grads[0]);
 
     document.getElementById('btn-toggle-bg').onclick = () => {
-        let curr = localStorage.getItem('nav_bg_final_v5');
+        let curr = localStorage.getItem('nav_bg_v6');
         updateBg(grads[(grads.indexOf(curr) + 1) % grads.length] || grads[0]);
     };
 
@@ -38,93 +33,83 @@ document.addEventListener('DOMContentLoaded', function() {
         img.onload = () => updateBg(url);
     };
 
-    // --- 数据获取 ---
     async function fetchData() {
         try {
             const res = await fetch('/api/links');
             const data = await res.json();
             allLinks = data.length > 0 ? data : DEFAULT_LINKS;
             render();
-        } catch (e) {
-            allLinks = DEFAULT_LINKS;
-            render();
-        }
+        } catch (e) { allLinks = DEFAULT_LINKS; render(); }
     }
     fetchData();
 
     function render() {
-        try {
-            const main = document.getElementById('main-content');
-            const nav = document.getElementById('category-ul');
-            const hint = document.getElementById('cat-hint');
-            main.innerHTML = ''; nav.innerHTML = ''; hint.innerHTML = '<option value="">选择分类</option>';
+        const main = document.getElementById('main-content');
+        const nav = document.getElementById('category-ul');
+        const hint = document.getElementById('cat-hint');
+        main.innerHTML = ''; nav.innerHTML = ''; hint.innerHTML = '<option value="">选择分类</option>';
 
-            const grouped = allLinks.reduce((acc, l) => {
-                if(l.title === 'placeholder_hidden') return acc;
-                acc[l.category] = acc[l.category] || [];
-                acc[l.category].push(l);
-                return acc;
-            }, {});
+        const grouped = allLinks.reduce((acc, l) => {
+            if(l.title === 'placeholder_hidden') return acc;
+            acc[l.category] = acc[l.category] || [];
+            acc[l.category].push(l);
+            return acc;
+        }, {});
 
-            Object.keys(grouped).forEach(cat => {
-                nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
-                hint.innerHTML += `<option value="${cat}">${cat}</option>`;
-                const sec = document.createElement('section');
-                sec.id = cat;
-                sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
-                const grid = sec.querySelector('.link-grid');
-                
-                // 拖拽逻辑
-                grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
-                grid.ondragleave = () => grid.classList.remove('drag-over');
-                grid.ondrop = async (e) => {
-                    grid.classList.remove('drag-over');
-                    const url = e.dataTransfer.getData('text');
-                    const item = allLinks.find(l => l.url === url);
-                    if(item && item.category !== cat) {
-                        item.category = cat;
-                        await apiReq('save', { link: item });
-                    }
-                };
+        Object.keys(grouped).forEach(cat => {
+            nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
+            hint.innerHTML += `<option value="${cat}">${cat}</option>`;
+            const sec = document.createElement('section');
+            sec.id = cat;
+            sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
+            const grid = sec.querySelector('.link-grid');
+            
+            grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
+            grid.ondragleave = () => grid.classList.remove('drag-over');
+            grid.ondrop = async (e) => {
+                grid.classList.remove('drag-over');
+                const url = e.dataTransfer.getData('text');
+                const item = allLinks.find(l => l.url === url);
+                if(item && item.category !== cat) {
+                    item.category = cat;
+                    await apiReq('save', { link: item });
+                }
+            };
 
-                grouped[cat].forEach(l => {
-                    const card = document.createElement('div');
-                    card.className = 'link-card';
-                    card.draggable = true;
-                    card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
-                    card.onclick = () => window.open(l.url, '_blank');
-                    card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
-                    card.ondragstart = (e) => e.dataTransfer.setData('text', l.url);
-                    grid.appendChild(card);
-                });
-                main.appendChild(sec);
+            grouped[cat].forEach(l => {
+                const card = document.createElement('div');
+                card.className = 'link-card';
+                card.draggable = true;
+                card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
+                card.onclick = () => window.open(l.url, '_blank');
+                card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
+                card.ondragstart = (e) => e.dataTransfer.setData('text', l.url);
+                grid.appendChild(card);
             });
-        } catch(e) { console.error("Render error:", e); }
+            main.appendChild(sec);
+        });
     }
 
-    // --- 认证缓存 (15分钟) ---
     const getAuth = () => {
-        const ts = localStorage.getItem('auth_ts_v5');
-        if(ts && Date.now() - ts < 15 * 60 * 1000) return localStorage.getItem('auth_pwd_v5');
+        const ts = localStorage.getItem('auth_ts_v6');
+        if(ts && Date.now() - ts < 15 * 60 * 1000) return localStorage.getItem('auth_pwd_v6');
         return null;
     };
 
     async function apiReq(action, data) {
-        let pwd = getAuth() || data.password || prompt("请输入管理密码:");
+        let pwd = getAuth() || data.password || prompt("管理密码:");
         if(!pwd) return;
-        try {
-            const res = await fetch('/api/links', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ ...data, password: pwd, action })
-            });
-            if(res.ok) {
-                localStorage.setItem('auth_pwd_v5', pwd);
-                localStorage.setItem('auth_ts_v5', Date.now());
-                fetchData(); return true;
-            }
-        } catch(e) {}
-        alert("操作失败"); return false;
+        const res = await fetch('/api/links', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ ...data, password: pwd, action })
+        });
+        if(res.ok) {
+            localStorage.setItem('auth_pwd_v6', pwd);
+            localStorage.setItem('auth_ts_v6', Date.now());
+            fetchData(); return true;
+        }
+        alert("认证失败"); return false;
     }
 
     window.deleteSite = (e, url) => {
@@ -132,7 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if(confirm("确定删除吗？")) apiReq('delete', { link: {url} });
     };
 
-    // --- 搜索逻辑同步 ---
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
         const inp = box.querySelector('.search-input');
@@ -173,7 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
         currentEngine = this.dataset.url;
     });
 
-    // --- 侧边栏按钮响应 ---
     document.getElementById('btn-top').onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
     document.getElementById('btn-float-search').onclick = () => document.getElementById('modal-search').style.display = 'flex';
     document.getElementById('btn-add-site').onclick = () => openEdit();
@@ -183,24 +166,27 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('btn-top').style.display = document.getElementById('btn-float-search').style.display = y > 300 ? 'flex' : 'none';
     };
 
-    // --- 弹窗逻辑 ---
     window.openEdit = (l = {}) => {
         document.getElementById('modal-link').style.display = 'flex';
         document.getElementById('in-cat').value = l.category || '';
         document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
         document.getElementById('in-url').value = l.url || '';
-        document.getElementById('prev-img').src = l.icon || '';
+        const prev = document.getElementById('prev-img');
+        prev.src = l.icon || '';
+        prev.style.display = l.icon ? 'block' : 'none'; // 解决破图逻辑
         document.getElementById('main-pwd').style.display = getAuth() ? 'none' : 'block';
     };
 
-    document.querySelectorAll('.modal-overlay, .close-modal').forEach(el => el.onclick = () => {
+    document.querySelectorAll('.modal-overlay').forEach(el => el.onclick = () => {
         document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
     });
 
     document.getElementById('in-url').oninput = function() {
         try {
             const h = new URL(this.value).hostname;
-            document.getElementById('prev-img').src = `https://www.google.com/s2/favicons?domain=${h}&sz=64`;
+            const img = document.getElementById('prev-img');
+            img.src = `https://www.google.com/s2/favicons?domain=${h}&sz=64`;
+            img.style.display = 'block';
         } catch(e){}
     };
 
