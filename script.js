@@ -1,90 +1,154 @@
-:root {
-    --red: #ff4d4f;
-    --dark: #202124;
-    --glass: rgba(255, 255, 255, 0.05);
-}
+document.addEventListener('DOMContentLoaded', function() {
+    let allLinks = [];
+    let currentEngine = "https://www.baidu.com/s?wd=";
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', system-ui, sans-serif; color: #fff; background: #000; min-height: 100vh; overflow-x: hidden; }
+    // --- 背景系统 ---
+    const bg = document.getElementById('bg-canvas');
+    window.changeBg = (type) => {
+        if(type === 'grey') updateBg('#202124');
+        else if(type === 'grad1') updateBg('linear-gradient(135deg, #0f0c29, #302b63, #24243e)');
+        else if(type === 'grad2') updateBg('linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d)');
+        else if(type === 'random') updateBg(`https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=80&r=${Math.random()}`);
+        else if(type === 'custom') { const u = prompt("请输入背景图 URL:"); if(u) updateBg(u); }
+    };
+    function updateBg(v) {
+        if(v.startsWith('http')) bg.style.backgroundImage = `url(${v})`;
+        else bg.style.background = v;
+        localStorage.setItem('nav_bg_final', v);
+    }
+    updateBg(localStorage.getItem('nav_bg_final') || 'grad1');
 
-#bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-size: cover; background-position: center; transition: 1s ease; }
+    // --- 数据交互 ---
+    async function fetchData() {
+        try {
+            const res = await fetch('/api/links');
+            if(!res.ok) throw new Error("Fetch failed");
+            allLinks = await res.json();
+            render();
+        } catch (e) {
+            console.error(e);
+            alert("加载失败，请检查 KV 绑定或网络");
+        }
+    }
+    fetchData();
 
-。wrapper { max-width: 1100px; margin: 0 auto; padding: 20px; }
-header { padding: 60px 0 20px; text-align: center; }
-header h1 { font-weight: 300; font-size: 36px; color: #4facfe; margin-bottom: 30px; letter-spacing: 2px; }
+    function render() {
+        const main = document.getElementById('main-content');
+        const nav = document.getElementById('nav-bar').querySelector('ul');
+        const hint = document.getElementById('cat-hint');
+        
+        main.innerHTML = ''; nav.innerHTML = '';
+        hint.innerHTML = '<option value="">快捷选择</option>';
 
-/* 搜索栏：美化回归 */
-。search-main-box { max-width: 650px; margin: 0 auto 40px; }
-。search-tabs { display: flex; justify-content: center; gap: 20px; margin-bottom: 15px; }
-。tab { cursor: pointer; opacity: 0.5; font-size: 15px; padding-bottom: 5px; transition: 0.3s; }
-。tab.active { opacity: 1; border-bottom: 2px solid #fff; font-weight: bold; }
+        if(allLinks.length === 0) return;
 
-。search-bar {
-    display: flex; background: rgba(32, 33, 36, 0.95); border-radius: 50px; padding: 6px 6px 6px 20px;
-    border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-。search-bar input { flex: 1; background: transparent; border: none; color: #fff; font-size: 17px; outline: none; }
-。search-bar button { background: var(--red); border: none; color: #fff; width: 50px; height: 44px; border-radius: 50px; cursor: pointer; }
+        const cats = [...new Set(allLinks.map(l => l.category))];
+        cats.forEach(cat => {
+            nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
+            hint.innerHTML += `<option value="${cat}">${cat}</option>`;
+            
+            const sec = document.createElement('section');
+            sec.id = cat;
+            sec.innerHTML = `<h2 style="border-left:4px solid #ff4d4f; padding-left:12px; margin:40px 0 20px; font-size:18px;">${cat}</h2><div class="link-grid"></div>`;
+            const grid = sec.querySelector('.link-grid');
 
-。search-engines { display: flex; justify-content: center; gap: 15px; margin-top: 15px; font-size: 13px; }
-。engine { cursor: pointer; opacity: 0.6; }
-。engine.active { opacity: 1; font-weight: bold; }
+            allLinks.filter(l => l.category === cat).forEach(link => {
+                const card = document.createElement('div');
+                card.className = 'link-card';
+                // 图标解析保护
+                let iconUrl = link.icon;
+                if(!iconUrl || !iconUrl.startsWith('http')) {
+                    try { iconUrl = `https://www.google.com/s2/favicons?domain=${new URL(link.url).hostname}&sz=64`; } catch(e){ iconUrl = ''; }
+                }
+                card.innerHTML = `
+                    <div class="card-del" onclick="handleDelete(event, '${link.url}')"><i class="fas fa-times"></i></div>
+                    <img src="${iconUrl}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'">
+                    <h3>${link.title}</h3>
+                `;
+                card.onclick = () => window.open(link.url, '_blank');
+                card.oncontextmenu = (e) => { e.preventDefault(); openModal(link); };
+                grid.appendChild(card);
+            });
+            main.appendChild(sec);
+        });
+    }
 
-/* 站点卡片：毛玻璃+呼吸灯 */
-。link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 20px; margin-bottom: 40px; }
-。link-card {
-    position: relative; background: var(--glass); backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; padding: 22px 10px;
-    text-align: center; cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-。link-card:hover {
-    background: rgba(255, 255, 255, 0.15); transform: translateY(-8px);
-    border-color: var(--red); box-shadow: 0 0 20px rgba(255, 77, 79, 0.3);
-}
-。link-card img { width: 42px; height: 42px; border-radius: 10px; margin-bottom: 10px; }
-。link-card h3 { font-size: 13px; font-weight: 300; opacity: 0.8; }
+    // --- 搜索逻辑 ---
+    const searchInp = document.getElementById('search-input');
+    document.querySelectorAll('.tab').forEach(t => t.onclick = function() {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        this.classList.add('active');
+        const isInt = this.dataset.type === 'internal';
+        document.getElementById('engine-list').style.display = isInt ? 'none' : 'flex';
+        searchInp.placeholder = isInt ? "搜索站内书签..." : "百度一下";
+    });
 
-/* 右上角删除 */
-。card-del {
-    position: absolute; top: -6px; right: -6px; background: var(--red); color: #fff;
-    width: 22px; height: 22px; border-radius: 50%; font-size: 11px;
-    display: none; align-items: center; justify-content: center; z-index: 10;
-}
-。link-card:hover .card-del { display: flex; }
+    document.querySelectorAll('.engine').forEach(e => e.onclick = function() {
+        document.querySelectorAll('.engine').forEach(x => x.classList.remove('active'));
+        this.classList.add('active');
+        currentEngine = this.dataset.url;
+    });
 
-/* 侧边栏：修复缩回问题 */
-。side-toolbar { position: fixed; right: 25px; bottom: 30px; display: flex; flex-direction: column; gap: 12px; z-index: 1000; }
-。side-btn {
-    width: 50px; height: 50px; border-radius: 15px; background: rgba(32,33,36,0.9);
-    border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer; transition: 0.3s;
-    display: flex; align-items: center; justify-content: center; font-size: 18px;
-}
-。side-btn:hover { background: var(--red); }
+    const doSearch = () => {
+        const q = searchInp.value.trim();
+        if(!q) return;
+        if(document.querySelector('.tab.active').dataset.type === 'internal') {
+            document.querySelectorAll('.link-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(q.toLowerCase()) ? 'block' : 'none');
+        } else { window.open(currentEngine + encodeURIComponent(q), '_blank'); }
+    };
+    document.getElementById('search-btn').onclick = doSearch;
+    searchInp.onkeypress = (e) => e.key === 'Enter' && doSearch();
 
-/* 背景二级菜单 */
-。bg-menu-wrapper { position: relative; }
-。bg-sub-menu {
-    position: absolute; right: 65px; bottom: 0; display: none; gap: 8px;
-    padding-right: 15px; animation: slideIn 0.3s forwards;
-}
-。bg-menu-wrapper:hover .bg-sub-menu { display: flex; }
-。bg-ball {
-    width: 44px; height: 44px; background: #202124; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    border: 1px solid #444; font-size: 12px; font-weight: bold;
-}
-。bg-ball:hover { background: #4facfe; transform: scale(1.1); }
-@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    // --- 工具栏与置顶 ---
+    document.getElementById('go-top').onclick = () => window.scrollTo({top:0, behavior:'smooth'});
+    window.onscroll = () => document.getElementById('open-search').style.display = window.scrollY > 300 ? 'flex' : 'none';
+    document.getElementById('open-search').onclick = () => window.scrollTo({top:0, behavior:'smooth'});
 
-/* 弹窗 */
-。modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; }
-。modal-body { background: #1a1a1a; padding: 30px; border-radius: 24px; width: 90%; max-width: 420px; border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,1); }
-#link-form input, #link-form select { width: 100%; padding: 14px; margin-bottom: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; outline: none; }
-。save-button { width: 100%; padding: 14px; background: var(--red); border: none; color: #fff; border-radius: 12px; font-weight: bold; cursor: pointer; }
-。preview-line { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; font-size: 13px; opacity: 0.6; }
-。preview-line img { width: 32px; height: 32px; border-radius: 8px; }
+    // --- 弹窗逻辑 ---
+    const modal = document.getElementById('link-modal');
+    window.openModal = (data = {}) => {
+        modal.style.display = 'flex';
+        document.getElementById('title-input').value = data.title || '';
+        document.getElementById('url-input').value = data.url || '';
+        document.getElementById('cat-input').value = data.category || '';
+        document.getElementById('prev-img').src = data.icon || '';
+    };
+    document.getElementById('add-site').onclick = () => openModal();
+    document.getElementById('manage-cat').onclick = () => alert("提示：只需在编辑站点时修改分类名称，分类便会自动更新/增加。");
+    document.querySelector('.close-modal').onclick = () => modal.style.display = 'none';
+    window.onclick = (e) => { if(e.target == modal) modal.style.display = 'none'; };
 
-nav { margin-bottom: 30px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 15px; text-align: center; }
-nav ul { display: flex; justify-content: center; flex-wrap: wrap; list-style: none; gap: 10px; }
-nav a { color: #aaa; text-decoration: none; font-size: 14px; padding: 5px 12px; border-radius: 5px; transition: 0.3s; }
-nav a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    // 自动抓取图标
+    document.getElementById('url-input').oninput = function() {
+        try {
+            const h = new URL(this.value).hostname;
+            document.getElementById('prev-img').src = `https://www.google.com/s2/favicons?domain=${h}&sz=64`;
+        } catch(e){}
+    };
+
+    // --- 保存与删除 ---
+    document.getElementById('link-form').onsubmit = async function(e) {
+        e.preventDefault();
+        const fd = new FormData(this);
+        const data = Object.fromEntries(fd);
+        data.icon = document.getElementById('prev-img').src;
+        const res = await fetch('/api/links', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ password: data.password, link: data })
+        });
+        if(res.ok) { modal.style.display = 'none'; fetchData(); } else alert("管理密码错误！");
+    };
+
+    window.handleDelete = async (e, url) => {
+        e.stopPropagation();
+        const pwd = prompt("请输入管理密码确认删除站点:");
+        if(!pwd) return;
+        const res = await fetch('/api/links', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ password: pwd, link: {url: url}, action: 'delete' })
+        });
+        if(res.ok) fetchData(); else alert("删除失败，请检查密码");
+    };
+});
