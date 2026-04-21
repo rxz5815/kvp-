@@ -8,78 +8,83 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
-  <!-- 动态背景层 -->
-  <div id="bg-container"></div>
+  <div id="bg-canvas"></div>
 
-  <div class="wrapper">
-    <header>
+  <div class="container">
+    <header id="main-header">
       <h1>WebNav Hub</h1>
-      <!-- 搜索组件 -->
-      <div class="search-section">
+      <!-- 顶部主搜索栏 -->
+      <div class="search-wrapper main-search">
         <div class="search-tabs">
-          <span class="search-tab" data-type="internal">站内</span>
-          <span class="search-tab active" data-type="web">搜索</span>
+          <div class="tab" data-type="internal">站内</div>
+          <div class="tab active" data-type="web">搜索</div>
         </div>
-        <div class="search-bar-box">
-          <input type="text" id="search-input" placeholder="百度一下" autofocus autocomplete="off">
-          <button id="search-btn"><i class="fas fa-search"></i></button>
+        <div class="search-input-group">
+          <input type="text" class="search-input" placeholder="百度一下" autocomplete="off">
+          <button class="search-trigger"><i class="fas fa-search"></i></button>
         </div>
         <div class="search-engines">
           <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
           <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
-          <span class="engine" data-url="https://www.so.com/s?q=">360</span>
-          <span class="engine" data-url="https://www.sogou.com/web?query=">搜狗</span>
           <span class="engine" data-url="https://www.bing.com/search?q=">Bing</span>
-          <span class="engine" data-url="https://m.sm.cn/s?q=">神马</span>
+          <span class="engine" data-url="https://www.zhihu.com/search?q=">知乎</span>
         </div>
       </div>
     </header>
 
-    <nav id="nav-container">
-      <ul id="nav-menu"></ul>
-    </nav>
-
-    <main id="main-content">
-      <!-- 这里由 JS 自动生成内容 -->
-    </main>
-
-    <footer>
-      <p>&copy; 2024 WebNav Hub. Built with Cloudflare.</p>
-    </footer>
+    <nav><ul id="category-nav"></ul></nav>
+    <main id="main-content"></main>
   </div>
 
-  <!-- 编辑弹窗 -->
-  <div id="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>管理与设置</h3>
-        <span class="close-modal">&times;</span>
-      </div>
-      
-      <div class="settings-area">
-        <p>背景设置</p>
-        <div class="bg-btns">
-          <button onclick="setBackground('random')">随机风景</button>
-          <button onclick="setBackground('gradient')">极简灰色</button>
+  <!-- 右侧工具栏 -->
+  <div class="side-tools">
+    <button class="tool-btn" id="float-search-btn" title="快速搜索" style="display:none;"><i class="fas fa-search"></i></button>
+    <button class="tool-btn" id="btn-add" title="添加站点"><i class="fas fa-plus"></i></button>
+    <button class="tool-btn" id="btn-bg" title="更换背景"><i class="fas fa-image"></i></button>
+    <button class="tool-btn" id="btn-cat" title="分类管理"><i class="fas fa-folder-open"></i></button>
+  </div>
+
+  <!-- 弹窗搜索框 (向下拉时通过侧边栏触发) -->
+  <div class="modal" id="modal-search">
+    <div class="modal-content search-modal-content">
+        <div class="search-wrapper">
+            <div class="search-tabs">
+              <div class="tab" data-type="internal">站内</div>
+              <div class="tab active" data-type="web">搜索</div>
+            </div>
+            <div class="search-input-group">
+              <input type="text" class="search-input" placeholder="百度一下" autocomplete="off">
+              <button class="search-trigger"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="search-engines">
+              <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
+              <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
+              <span class="engine" data-url="https://www.bing.com/search?q=">Bing</span>
+            </div>
         </div>
-      </div>
-      <hr>
-      <form id="link-form">
-        <input type="password" name="edit_password" placeholder="管理员密码" required>
-        <input type="text" id="category" name="category" placeholder="分类名称" list="category-list" required>
-        <datalist id="category-list"></datalist>
-        <input type="text" name="title" placeholder="网站标题" required>
-        <input type="url" id="url-input" name="url" placeholder="网站URL (https://...)" required>
-        <div class="preview-box">
-          <img id="icon-preview" src="https://www.google.com/s2/favicons?domain=google.com&sz=64">
-          <span>图标预览</span>
-        </div>
-        <button type="submit" class="submit-btn">保存站点</button>
-      </form>
     </div>
   </div>
 
-  <button id="toggle-edit-btn"><i class="fas fa-plus"></i></button>
+  <!-- 站点编辑弹窗 -->
+  <div class="modal" id="modal-link">
+    <div class="modal-content">
+      <div class="modal-header"><h3>编辑站点</h3><span class="close">&times;</span></div>
+      <form id="form-link">
+        <input type="password" name="password" placeholder="管理密码" required>
+        <select name="category" id="select-category" required></select>
+        <input type="text" name="title" id="in-title" placeholder="站点名称" required>
+        <input type="url" name="url" id="in-url" placeholder="URL (https://...)" required>
+        <div class="icon-preview-row">
+            <img id="icon-preview" src="">
+            <span>图标预览</span>
+        </div>
+        <div class="btn-group">
+            <button type="submit" class="btn-save">保存</button>
+            <button type="button" class="btn-del" id="btn-delete-link">删除</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
