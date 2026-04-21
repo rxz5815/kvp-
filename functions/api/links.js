@@ -1,20 +1,35 @@
 export async function onRequest(context) {
   const { request, env } = context;
-  const { password, link, action, oldCategory, newCategory } = await request.json().catch(() => ({}));
+  const { password, link, action, oldCategory, newCategory, order } = await request.json().catch(() => ({}));
 
+  // GET 请求同时返回链接和排序信息
   if (request.method === 'GET') {
     const links = await env.LINKS_KV.get('all_links');
-    return new Response(links || '[]', { headers: { 'Content-Type': 'application/json' } });
+    const categoryOrder = await env.LINKS_KV.get('category_order');
+    return new Response(JSON.stringify({
+      links: JSON.parse(links || '[]'),
+      order: JSON.parse(categoryOrder || '[]')
+    }), { headers: { 'Content-Type': 'application/json' } });
   }
 
   if (password !== env.EDIT_PASSWORD) return new Response('Unauthorized', { status: 401 });
 
   let links = JSON.parse(await env.LINKS_KV.get('all_links') || '[]');
 
+  // 处理排序更新
+  if (action === 'updateOrder') {
+    await env.LINKS_KV.put('category_order', JSON.stringify(order));
+    return new Response('Order Updated', { status: 200 });
+  }
+
   if (action === 'delete') {
     links = links.filter(l => l.url !== link.url);
   } else if (action === 'renameCategory') {
     links = links.map(l => l.category === oldCategory ? { ...l, category: newCategory } : l);
+    // 同时更新排序表里的名称
+    let categoryOrder = JSON.parse(await env.LINKS_KV.get('category_order') || '[]');
+    categoryOrder = categoryOrder.map(c => c === oldCategory ? newCategory : c);
+    await env.LINKS_KV.put('category_order', JSON.stringify(categoryOrder));
   } else if (action === 'deleteCategory') {
     links = links.filter(l => l.category !== oldCategory);
   } else if (action === 'addCategory') {
@@ -22,8 +37,7 @@ export async function onRequest(context) {
   } else {
     links = links.filter(l => l.title !== 'placeholder_hidden');
     const idx = links.findIndex(l => l.url === link.url);
-    if (idx > -1) links[idx] = link;
-    else links.push(link);
+    if (idx > -1) links[idx] = link; else links.push(link);
   }
 
   await env.LINKS_KV.put('all_links', JSON.stringify(links));
