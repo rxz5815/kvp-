@@ -19,8 +19,8 @@
           <div class="tab active" data-type="web">搜索</div>
         </div>
         <div class="search-bar">
-          <input type="text" id="main-search-input" placeholder="百度一下" autocomplete="off">
-          <button onclick="executeSearch('main')"><i class="fas fa-search"></i></button>
+          <input type="text" class="search-input" placeholder="百度一下" autocomplete="off">
+          <button class="search-trigger"><i class="fas fa-search"></i></button>
         </div>
         <div class="search-engines">
           <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
@@ -33,7 +33,6 @@
     <main id="main-content"></main>
   </div>
 
-  <!-- 6按钮侧边栏 -->
   <div class="side-toolbar">
     <button class="side-btn" id="btn-top" style="display:none;"><i class="fas fa-chevron-up"></i></button>
     <button class="side-btn" id="btn-float-search" style="display:none;"><i class="fas fa-search"></i></button>
@@ -43,54 +42,44 @@
     <button class="side-btn" id="btn-manage-cat"><i class="fas fa-folder"></i></button>
   </div>
 
-  <!-- 独立搜索弹窗 -->
   <div class="modal" id="modal-search">
+    <div class="modal-overlay"></div>
     <div class="modal-body search-modal-body">
-      <div class="search-bar">
-        <input type="text" id="modal-search-input" placeholder="快速搜索站点...">
-        <button onclick="executeSearch('modal')"><i class="fas fa-search"></i></button>
-      </div>
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="快速检索书签...">
+            <button class="search-trigger"><i class="fas fa-search"></i></button>
+        </div>
     </div>
   </div>
 
-  <!-- 站点编辑弹窗 -->
   <div class="modal" id="modal-link">
+    <div class="modal-overlay"></div>
     <div class="modal-body">
       <span class="close-btn">&times;</span>
       <h3>编辑站点</h3>
       <form id="link-form">
-        <div id="pwd-field-wrap"><input type="password" name="password" id="main-pwd" placeholder="管理密码"></div>
+        <input type="password" name="password" id="main-pwd" placeholder="管理密码" required>
         <div class="input-row">
           <input type="text" name="category" id="in-cat" placeholder="分类名称" required>
           <select id="cat-hint" onchange="document.getElementById('in-cat').value=this.value"></select>
         </div>
         <input type="text" name="title" id="in-title" placeholder="站点标题" required>
-        <input type="url" name="url" id="in-url" placeholder="https://..." required>
-        <div class="icon-preview"><img id="prev-img" src=""><span>图标预览</span></div>
-        <button type="submit" class="save-btn">保存站点</button>
+        <div class="url-input-wrap">
+            <input type="url" name="url" id="in-url" placeholder="https://..." required>
+            <div class="url-icon-preview"><img id="prev-img" src=""><i id="prev-fa" class="fas fa-globe"></i></div>
+        </div>
+        <input type="text" name="fa_icon" id="in-fa" placeholder="备用图标 (如: fab fa-github)">
+        <button type="submit" class="save-btn-premium">保存站点</button>
       </form>
     </div>
   </div>
 
-  <!-- 分类管理弹窗 -->
   <div class="modal" id="modal-cat">
+    <div class="modal-overlay"></div>
     <div class="modal-body">
       <span class="close-btn">&times;</span>
       <h3>分类管理</h3>
       <div id="cat-list-container"></div>
-    </div>
-  </div>
-
-  <!-- 确认删除弹窗 -->
-  <div class="modal" id="modal-confirm">
-    <div class="modal-body">
-      <h3>确认操作</h3>
-      <p id="confirm-msg">确定要删除吗？</p>
-      <div id="confirm-pwd-wrap"><input type="password" id="confirm-pwd" placeholder="输入密码确认"></div>
-      <div class="modal-btns">
-        <button class="btn-cancel">取消</button>
-        <button class="btn-confirm-red">确定</button>
-      </div>
     </div>
   </div>
 
