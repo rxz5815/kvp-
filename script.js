@@ -1,34 +1,62 @@
 document.addEventListener('DOMContentLoaded', function() {
     let allLinks = [];
     let currentEngine = "https://www.baidu.com/s?wd=";
+    const gradients = [
+        'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
+        'linear-gradient(135deg, #202124 0%, #3c4043 100%)',
+        'linear-gradient(135deg, #e65245 0%, #e43a15 100%)'
+    ];
 
-    // --- 背景系统 ---
-    const bg = document.getElementById('bg-canvas');
-    window.changeBg = (type) => {
-        if(type === 'grey') updateBg('#202124');
-        else if(type === 'grad1') updateBg('linear-gradient(135deg, #0f0c29, #302b63, #24243e)');
-        else if(type === 'grad2') updateBg('linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d)');
-        else if(type === 'random') updateBg(`https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=80&r=${Math.random()}`);
-        else if(type === 'custom') { const u = prompt("请输入背景图 URL:"); if(u) updateBg(u); }
+    // --- 背景逻辑 ---
+    const updateBg = (val) => {
+        const canvas = document.getElementById('bg-canvas');
+        if(val.startsWith('http')) canvas.style.backgroundImage = `url(${val})`;
+        else canvas.style.background = val;
+        localStorage.setItem('nav_bg_pref', val);
     };
-    function updateBg(v) {
-        if(v.startsWith('http')) bg.style.backgroundImage = `url(${v})`;
-        else bg.style.background = v;
-        localStorage.setItem('nav_bg_final', v);
-    }
-    updateBg(localStorage.getItem('nav_bg_final') || 'grad1');
+    updateBg(localStorage.getItem('nav_bg_pref') || gradients[0]);
 
-    // --- 数据交互 ---
+    document.getElementById('btn-toggle-grad').onclick = () => {
+        let curr = localStorage.getItem('nav_bg_pref');
+        let idx = gradients.indexOf(curr);
+        updateBg(gradients[(idx + 1) % gradients.length]);
+    };
+
+    document.getElementById('btn-random-bg').onclick = () => {
+        const sources = [
+            `https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=80&r=${Math.random()}`,
+            `https://picsum.photos/1920/1080?random=${Math.random()}`
+        ];
+        updateBg(sources[Math.floor(Math.random()*sources.length)]);
+    };
+
+    // --- 滚动监听 ---
+    window.onscroll = () => {
+        const y = window.scrollY;
+        document.getElementById('btn-top').style.display = y > 300 ? 'flex' : 'none';
+        document.getElementById('btn-float-search').style.display = y > 300 ? 'flex' : 'none';
+    };
+    document.getElementById('btn-top').onclick = () => window.scrollTo({top:0, behavior:'smooth'});
+    document.getElementById('btn-float-search').onclick = () => document.getElementById('modal-search').style.display = 'flex';
+
+    // --- 认证缓存 (15分钟) ---
+    const getAuth = () => {
+        const ts = localStorage.getItem('auth_ts');
+        if(ts && Date.now() - ts < 15 * 60 * 1000) return localStorage.getItem('auth_pwd');
+        return null;
+    };
+    const setAuth = (pwd) => {
+        localStorage.setItem('auth_pwd', pwd);
+        localStorage.setItem('auth_ts', Date.now());
+    };
+
+    // --- 数据获取与渲染 ---
     async function fetchData() {
-        try {
-            const res = await fetch('/api/links');
-            if(!res.ok) throw new Error("Fetch failed");
-            allLinks = await res.json();
-            render();
-        } catch (e) {
-            console.error(e);
-            alert("加载失败，请检查 KV 绑定或网络");
-        }
+        const res = await fetch('/api/links');
+        allLinks = await res.json();
+        render();
     }
     fetchData();
 
@@ -36,119 +64,166 @@ document.addEventListener('DOMContentLoaded', function() {
         const main = document.getElementById('main-content');
         const nav = document.getElementById('nav-bar').querySelector('ul');
         const hint = document.getElementById('cat-hint');
-        
-        main.innerHTML = ''; nav.innerHTML = '';
-        hint.innerHTML = '<option value="">快捷选择</option>';
+        main.innerHTML = ''; nav.innerHTML = ''; hint.innerHTML = '<option value="">选择分类</option>';
 
-        if(allLinks.length === 0) return;
+        const grouped = allLinks.reduce((acc, l) => {
+            acc[l.category] = acc[l.category] || [];
+            acc[l.category].push(l);
+            return acc;
+        }, {});
 
-        const cats = [...new Set(allLinks.map(l => l.category))];
-        cats.forEach(cat => {
+        Object.keys(grouped).forEach(cat => {
             nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
             hint.innerHTML += `<option value="${cat}">${cat}</option>`;
-            
             const sec = document.createElement('section');
             sec.id = cat;
-            sec.innerHTML = `<h2 style="border-left:4px solid #ff4d4f; padding-left:12px; margin:40px 0 20px; font-size:18px;">${cat}</h2><div class="link-grid"></div>`;
+            sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
             const grid = sec.querySelector('.link-grid');
+            
+            // 绑定拖拽目标
+            grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
+            grid.ondragleave = () => grid.classList.remove('drag-over');
+            grid.ondrop = async (e) => {
+                grid.classList.remove('drag-over');
+                const url = e.dataTransfer.getData('text/plain');
+                const link = allLinks.find(l => l.url === url);
+                if(link && link.category !== cat) {
+                    link.category = cat;
+                    await submitData(link, 'save', true);
+                }
+            };
 
-            allLinks.filter(l => l.category === cat).forEach(link => {
+            grouped[cat].forEach(l => {
                 const card = document.createElement('div');
                 card.className = 'link-card';
-                // 图标解析保护
-                let iconUrl = link.icon;
-                if(!iconUrl || !iconUrl.startsWith('http')) {
-                    try { iconUrl = `https://www.google.com/s2/favicons?domain=${new URL(link.url).hostname}&sz=64`; } catch(e){ iconUrl = ''; }
-                }
-                card.innerHTML = `
-                    <div class="card-del" onclick="handleDelete(event, '${link.url}')"><i class="fas fa-times"></i></div>
-                    <img src="${iconUrl}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'">
-                    <h3>${link.title}</h3>
-                `;
-                card.onclick = () => window.open(link.url, '_blank');
-                card.oncontextmenu = (e) => { e.preventDefault(); openModal(link); };
+                card.draggable = true;
+                card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}"><h3>${l.title}</h3>`;
+                card.onclick = () => window.open(l.url, '_blank');
+                card.oncontextmenu = (e) => { e.preventDefault(); openEditModal(l); };
+                card.ondragstart = (e) => e.dataTransfer.setData('text/plain', l.url);
                 grid.appendChild(card);
             });
             main.appendChild(sec);
         });
     }
 
-    // --- 搜索逻辑 ---
-    const searchInp = document.getElementById('search-input');
-    document.querySelectorAll('.tab').forEach(t => t.onclick = function() {
-        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-        this.classList.add('active');
-        const isInt = this.dataset.type === 'internal';
-        document.getElementById('engine-list').style.display = isInt ? 'none' : 'flex';
-        searchInp.placeholder = isInt ? "搜索站内书签..." : "百度一下";
-    });
+    // --- 核心保存与删除逻辑 ---
+    async function submitData(link, action = 'save', isSilent = false) {
+        let pwd = getAuth();
+        if(!pwd && !isSilent) {
+            pwd = prompt("请输入管理密码:");
+            if(!pwd) return;
+        }
+        
+        const res = await fetch('/api/links', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ password: pwd, link, action })
+        });
+        
+        if(res.ok) {
+            setAuth(pwd);
+            fetchData();
+        } else {
+            alert("操作失败，密码错误或服务器错误");
+        }
+    }
 
-    document.querySelectorAll('.engine').forEach(e => e.onclick = function() {
-        document.querySelectorAll('.engine').forEach(x => x.classList.remove('active'));
-        this.classList.add('active');
-        currentEngine = this.dataset.url;
-    });
-
-    const doSearch = () => {
-        const q = searchInp.value.trim();
-        if(!q) return;
-        if(document.querySelector('.tab.active').dataset.type === 'internal') {
-            document.querySelectorAll('.link-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(q.toLowerCase()) ? 'block' : 'none');
-        } else { window.open(currentEngine + encodeURIComponent(q), '_blank'); }
+    window.deleteSite = (e, url) => {
+        e.stopPropagation();
+        if(confirm("确定删除该站点吗？")) {
+            submitData({url}, 'delete');
+        }
     };
-    document.getElementById('search-btn').onclick = doSearch;
-    searchInp.onkeypress = (e) => e.key === 'Enter' && doSearch();
 
-    // --- 工具栏与置顶 ---
-    document.getElementById('go-top').onclick = () => window.scrollTo({top:0, behavior:'smooth'});
-    window.onscroll = () => document.getElementById('open-search').style.display = window.scrollY > 300 ? 'flex' : 'none';
-    document.getElementById('open-search').onclick = () => window.scrollTo({top:0, behavior:'smooth'});
-
-    // --- 弹窗逻辑 ---
-    const modal = document.getElementById('link-modal');
-    window.openModal = (data = {}) => {
+    // --- 分类管理 (需求3修正) ---
+    document.getElementById('btn-manage-cat').onclick = () => {
+        const modal = document.getElementById('modal-cat');
+        const container = document.getElementById('cat-list-container');
+        container.innerHTML = '';
+        const cats = [...new Set(allLinks.map(l => l.category))];
+        cats.forEach(c => {
+            const row = document.createElement('div');
+            row.className = 'cat-manage-item';
+            row.innerHTML = `<input type="text" value="${c}"><button onclick="renameCat('${c}', this)">改名</button><button onclick="deleteCat('${c}')">删全类</button>`;
+            container.appendChild(row);
+        });
         modal.style.display = 'flex';
-        document.getElementById('title-input').value = data.title || '';
-        document.getElementById('url-input').value = data.url || '';
-        document.getElementById('cat-input').value = data.category || '';
-        document.getElementById('prev-img').src = data.icon || '';
     };
-    document.getElementById('add-site').onclick = () => openModal();
-    document.getElementById('manage-cat').onclick = () => alert("提示：只需在编辑站点时修改分类名称，分类便会自动更新/增加。");
-    document.querySelector('.close-modal').onclick = () => modal.style.display = 'none';
-    window.onclick = (e) => { if(e.target == modal) modal.style.display = 'none'; };
 
-    // 自动抓取图标
-    document.getElementById('url-input').oninput = function() {
+    window.renameCat = async (oldCat, btn) => {
+        const newCat = btn.previousElementSibling.value;
+        if(newCat && newCat !== oldCat) {
+            const pwd = prompt("修改分类名将更新该类下所有站点，请输入密码:");
+            if(!pwd) return;
+            const res = await fetch('/api/links', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ password: pwd, action: 'renameCategory', oldCategory: oldCat, newCategory: newCat })
+            });
+            if(res.ok) { setAuth(pwd); fetchData(); document.getElementById('modal-cat').style.display = 'none'; }
+        }
+    };
+
+    window.deleteCat = async (cat) => {
+        if(confirm(`确定删除分类 "${cat}" 及其下所有站点吗？此操作不可恢复！`)) {
+            const pwd = prompt("请输入密码确认删除整个分类:");
+            if(!pwd) return;
+            const res = await fetch('/api/links', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ password: pwd, action: 'deleteCategory', oldCategory: cat })
+            });
+            if(res.ok) { setAuth(pwd); fetchData(); document.getElementById('modal-cat').style.display = 'none'; }
+        }
+    }
+
+    // --- 其他辅助逻辑 ---
+    window.executeSearch = (type) => {
+        const inputId = type === 'main' ? 'main-search-input' : 'modal-search-input';
+        const q = document.getElementById(inputId).value.trim();
+        if(!q) return;
+        const isInt = document.querySelector('.tab.active').dataset.type === 'internal';
+        if(isInt) {
+            document.querySelectorAll('.link-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(q.toLowerCase()) ? 'block' : 'none');
+            document.getElementById('modal-search').style.display = 'none';
+        } else {
+            window.open(currentEngine + encodeURIComponent(q), '_blank');
+        }
+    };
+
+    const modalLink = document.getElementById('modal-link');
+    window.openEditModal = (l = {}) => {
+        modalLink.style.display = 'flex';
+        document.getElementById('in-cat').value = l.category || '';
+        document.getElementById('in-title').value = l.title || '';
+        document.getElementById('in-url').value = l.url || '';
+        document.getElementById('prev-img').src = l.icon || '';
+        const authPwd = getAuth();
+        document.getElementById('pwd-field-wrap').style.display = authPwd ? 'none' : 'block';
+    };
+    document.getElementById('btn-add-site').onclick = () => openEditModal();
+    document.querySelectorAll('.close-btn').forEach(b => b.onclick = () => {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    });
+
+    document.getElementById('in-url').oninput = function() {
         try {
             const h = new URL(this.value).hostname;
             document.getElementById('prev-img').src = `https://www.google.com/s2/favicons?domain=${h}&sz=64`;
         } catch(e){}
     };
 
-    // --- 保存与删除 ---
     document.getElementById('link-form').onsubmit = async function(e) {
         e.preventDefault();
-        const fd = new FormData(this);
-        const data = Object.fromEntries(fd);
+        const data = Object.fromEntries(new FormData(this));
+        if(!data.password) data.password = getAuth();
         data.icon = document.getElementById('prev-img').src;
         const res = await fetch('/api/links', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ password: data.password, link: data })
         });
-        if(res.ok) { modal.style.display = 'none'; fetchData(); } else alert("管理密码错误！");
-    };
-
-    window.handleDelete = async (e, url) => {
-        e.stopPropagation();
-        const pwd = prompt("请输入管理密码确认删除站点:");
-        if(!pwd) return;
-        const res = await fetch('/api/links', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ password: pwd, link: {url: url}, action: 'delete' })
-        });
-        if(res.ok) fetchData(); else alert("删除失败，请检查密码");
+        if(res.ok) { setAuth(data.password); modalLink.style.display='none'; fetchData(); } else alert("保存失败");
     };
 });
