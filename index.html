@@ -13,7 +13,6 @@
   <div class="container">
     <header id="main-header">
       <h1>WebNav Hub</h1>
-      <!-- 顶部主搜索栏 -->
       <div class="search-wrapper main-search">
         <div class="search-tabs">
           <div class="tab" data-type="internal">站内</div>
@@ -27,7 +26,6 @@
           <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
           <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
           <span class="engine" data-url="https://www.bing.com/search?q=">Bing</span>
-          <span class="engine" data-url="https://www.zhihu.com/search?q=">知乎</span>
         </div>
       </div>
     </header>
@@ -36,53 +34,65 @@
     <main id="main-content"></main>
   </div>
 
-  <!-- 右侧工具栏 -->
+  <!-- 侧边工具栏 (需求1, 2) -->
   <div class="side-tools">
-    <button class="tool-btn" id="float-search-btn" title="快速搜索" style="display:none;"><i class="fas fa-search"></i></button>
-    <button class="tool-btn" id="btn-add" title="添加站点"><i class="fas fa-plus"></i></button>
-    <button class="tool-btn" id="btn-bg" title="更换背景"><i class="fas fa-image"></i></button>
-    <button class="tool-btn" id="btn-cat" title="分类管理"><i class="fas fa-folder-open"></i></button>
+    <button class="tool-btn" id="btn-top" title="回到顶部"><i class="fas fa-chevron-up"></i></button>
+    <button class="tool-btn" id="float-search-btn" style="display:none;"><i class="fas fa-search"></i></button>
+    <button class="tool-btn" id="btn-add"><i class="fas fa-plus"></i></button>
+    
+    <!-- 背景切换组 -->
+    <div class="bg-tool-group">
+        <button class="tool-btn" id="btn-bg-main"><i class="fas fa-image"></i></button>
+        <div class="bg-options-panel">
+            <div class="bg-opt-item" onclick="setFastBg('grey')" title="极简灰"><i class="fas fa-palette" style="color:#555"></i></div>
+            <div class="bg-opt-item" onclick="setFastBg('gradient')" title="渐变色"><i class="fas fa-magic"></i></div>
+            <div class="bg-opt-item" onclick="setFastBg('random')" title="随机风景"><i class="fas fa-random"></i></div>
+            <div class="bg-opt-item" onclick="setFastBg('custom')" title="自定义链接"><i class="fas fa-link"></i></div>
+        </div>
+    </div>
+    
+    <button class="tool-btn" id="btn-cat-open"><i class="fas fa-folder-open"></i></button>
   </div>
 
-  <!-- 弹窗搜索框 (向下拉时通过侧边栏触发) -->
+  <!-- 搜索弹窗 -->
   <div class="modal" id="modal-search">
     <div class="modal-content search-modal-content">
         <div class="search-wrapper">
-            <div class="search-tabs">
-              <div class="tab" data-type="internal">站内</div>
-              <div class="tab active" data-type="web">搜索</div>
-            </div>
             <div class="search-input-group">
-              <input type="text" class="search-input" placeholder="百度一下" autocomplete="off">
+              <input type="text" class="search-input" placeholder="快速搜索站点...">
               <button class="search-trigger"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="search-engines">
-              <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
-              <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
-              <span class="engine" data-url="https://www.bing.com/search?q=">Bing</span>
             </div>
         </div>
     </div>
   </div>
 
-  <!-- 站点编辑弹窗 -->
+  <!-- 站点编辑弹窗 (需求3, 5) -->
   <div class="modal" id="modal-link">
     <div class="modal-content">
-      <div class="modal-header"><h3>编辑站点</h3><span class="close">&times;</span></div>
+      <div class="modal-header"><h3>添加/编辑站点</h3><span class="close">&times;</span></div>
       <form id="form-link">
         <input type="password" name="password" placeholder="管理密码" required>
-        <select name="category" id="select-category" required></select>
+        <select name="category" id="select-category"></select>
         <input type="text" name="title" id="in-title" placeholder="站点名称" required>
         <input type="url" name="url" id="in-url" placeholder="URL (https://...)" required>
         <div class="icon-preview-row">
             <img id="icon-preview" src="">
             <span>图标预览</span>
         </div>
-        <div class="btn-group">
-            <button type="submit" class="btn-save">保存</button>
-            <button type="button" class="btn-del" id="btn-delete-link">删除</button>
-        </div>
+        <button type="submit" class="btn-save">保存</button>
       </form>
+    </div>
+  </div>
+
+  <!-- 分类管理弹窗 (需求4) -->
+  <div class="modal" id="modal-cat">
+    <div class="modal-content">
+      <div class="modal-header"><h3>分类管理</h3><span class="close">&times;</span></div>
+      <div id="cat-list-box"></div>
+      <div class="add-cat-input">
+          <input type="text" id="new-cat-name" placeholder="新分类名称">
+          <button id="add-cat-confirm">增加</button>
+      </div>
     </div>
   </div>
 
