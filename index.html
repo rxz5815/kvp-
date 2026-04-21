@@ -5,24 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WebNav Hub</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
   <div id="bg-canvas"></div>
 
-  <div class="container">
+  <div class="wrapper">
     <header>
       <h1>WebNav Hub</h1>
-      <div class="search-wrapper">
+      <div class="search-main-box">
         <div class="search-tabs">
-          <span class="search-tab" data-type="internal">站内</span>
-          <span class="search-tab active" data-type="web">搜索</span>
+          <div class="tab" data-type="internal">站内</div>
+          <div class="tab active" data-type="web">搜索</div>
         </div>
         <div class="search-bar">
-          <input type="text" id="search-input" placeholder="百度一下" autocomplete="off">
+          <input type="text" id="search-input" placeholder="百度一下" autofocus autocomplete="off">
           <button id="search-btn"><i class="fas fa-search"></i></button>
         </div>
-        <div class="search-engines" id="engines-list">
+        <div class="search-engines" id="engine-list">
           <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
           <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
           <span class="engine" data-url="https://www.bing.com/search?q=">Bing</span>
@@ -30,49 +30,49 @@
       </div>
     </header>
 
-    <nav id="category-nav"></nav>
+    <nav id="nav-bar"><ul></ul></nav>
     <main id="main-content"></main>
   </div>
 
-  <!-- 侧边工具栏 (需求1: 悬停不缩回) -->
-  <div class="side-tools">
-    <button class="tool-btn" id="btn-top" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
-    <button class="tool-btn" id="float-search-btn" style="display:none;"><i class="fas fa-search"></i></button>
-    <button class="tool-btn" id="btn-add"><i class="fas fa-plus"></i></button>
+  <!-- 侧边栏工具 -->
+  <div class="side-toolbar">
+    <button class="side-btn" id="go-top" title="回到顶部"><i class="fas fa-chevron-up"></i></button>
+    <button class="side-btn" id="open-search" style="display:none;"><i class="fas fa-search"></i></button>
+    <button class="side-btn" id="add-site" title="添加站点"><i class="fas fa-plus"></i></button>
     
-    <div class="bg-tool-wrapper">
-        <button class="tool-btn bg-main-icon"><i class="fas fa-image"></i></button>
-        <div class="bg-sub-panel">
-            <div class="bg-item" onclick="setBg('grey')" title="谷歌灰"><i class="fas fa-circle" style="color:#202124"></i></div>
-            <div class="bg-item" onclick="setBg('gradient1')" title="极光紫"><i class="fas fa-fill-drip"></i></div>
-            <div class="bg-item" onclick="setBg('gradient2')" title="深海蓝"><i class="fas fa-swatchbook"></i></div>
-            <div class="bg-item" onclick="setBg('random')" title="随机风景"><i class="fas fa-random"></i></div>
-            <div class="bg-item" onclick="setBg('custom')" title="自定义图片"><i class="fas fa-link"></i></div>
+    <div class="bg-menu-wrapper">
+        <button class="side-btn"><i class="fas fa-image"></i></button>
+        <div class="bg-sub-menu">
+            <div class="bg-ball" onclick="changeBg('grey')" title="谷歌灰">G</div>
+            <div class="bg-ball" onclick="changeBg('grad1')" title="渐变蓝">B</div>
+            <div class="bg-ball" onclick="changeBg('grad2')" title="渐变紫">P</div>
+            <div class="bg-ball" onclick="changeBg('random')" title="随机风景">R</div>
+            <div class="bg-ball" onclick="changeBg('custom')" title="自定义">C</div>
         </div>
     </div>
     
-    <button class="tool-btn" id="btn-cat"><i class="fas fa-folder-open"></i></button>
+    <button class="side-btn" id="manage-cat" title="分类管理"><i class="fas fa-folder"></i></button>
   </div>
 
-  <!-- 站点编辑弹窗 -->
-  <div class="modal" id="modal-link">
-    <div class="modal-content">
-      <div class="modal-header"><h3>编辑站点</h3><span class="close">&times;</span></div>
-      <form id="form-link">
-        <input type="password" name="password" placeholder="管理员密码" required>
-        <div class="input-row">
-            <input type="text" name="category" id="in-cat" placeholder="分类 (如: ai-search)" required>
-            <select id="select-cat-hint" onchange="document.getElementById('in-cat').value=this.value">
-                <option value="">快速选择分类</option>
+  <!-- 编辑弹窗 -->
+  <div class="modal" id="link-modal">
+    <div class="modal-body">
+      <div class="modal-head"><h3>编辑站点</h3><span class="close-modal">&times;</span></div>
+      <form id="link-form">
+        <input type="password" name="password" placeholder="管理密码" required>
+        <div style="display:flex; gap:10px;">
+            <input type="text" name="category" id="cat-input" placeholder="分类" required style="flex:1">
+            <select id="cat-hint" style="width:120px;" onchange="document.getElementById('cat-input').value=this.value">
+                <option value="">快捷选择</option>
             </select>
         </div>
-        <input type="text" name="title" id="in-title" placeholder="网站名称" required>
-        <input type="url" name="url" id="in-url" placeholder="URL (https://...)" required>
-        <div class="icon-preview-row">
-            <img id="icon-preview" src="">
-            <span>图标预览 (自动获取)</span>
+        <input type="text" name="title" id="title-input" placeholder="站点名称" required>
+        <input type="url" name="url" id="url-input" placeholder="https://..." required>
+        <div class="preview-line">
+            <img id="prev-img" src="">
+            <span>图标自动获取预览</span>
         </div>
-        <button type="submit" class="btn-save">保存站点</button>
+        <button type="submit" class="save-button">保存站点</button>
       </form>
     </div>
   </div>
