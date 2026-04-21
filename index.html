@@ -3,96 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebNav Hub - 智能导航</title>
+  <title>WebNav Hub</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
-  <!-- 背景容器 -->
+  <!-- 动态背景层 -->
   <div id="bg-container"></div>
 
-  <header>
-    <h1>WebNav Hub</h1>
-    
-    <!-- 需求2：高仿参考图搜索组件 -->
-    <div class="search-container">
-      <div class="search-tabs">
-        <span class="search-tab" data-type="internal">站内</span>
-        <span class="search-tab active" data-type="web">搜索</span>
+  <div class="wrapper">
+    <header>
+      <h1>WebNav Hub</h1>
+      <!-- 搜索组件 -->
+      <div class="search-section">
+        <div class="search-tabs">
+          <span class="search-tab" data-type="internal">站内</span>
+          <span class="search-tab active" data-type="web">搜索</span>
+        </div>
+        <div class="search-bar-box">
+          <input type="text" id="search-input" placeholder="百度一下" autofocus autocomplete="off">
+          <button id="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="search-engines">
+          <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
+          <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
+          <span class="engine" data-url="https://www.so.com/s?q=">360</span>
+          <span class="engine" data-url="https://www.sogou.com/web?query=">搜狗</span>
+          <span class="engine" data-url="https://www.bing.com/search?q=">Bing</span>
+          <span class="engine" data-url="https://m.sm.cn/s?q=">神马</span>
+        </div>
       </div>
-      
-      <div class="search-bar">
-        <input type="text" id="search-input" placeholder="百度一下" autofocus autocomplete="off">
-        <button id="search-btn"><i class="fas fa-search"></i></button>
-      </div>
+    </header>
 
-      <div class="search-engines">
-        <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
-        <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
-        <span class="engine" data-url="https://www.so.com/s?q=">360</span>
-        <span class="engine" data-url="https://www.sogou.com/web?query=">搜狗</span>
-        <span class="engine" data-url="https://www.bing.com/search?q=">Bing</span>
-        <span class="engine" data-url="https://m.sm.cn/s?q=">神马</span>
-      </div>
-    </div>
-  </header>
+    <nav id="nav-container">
+      <ul id="nav-menu"></ul>
+    </nav>
 
-  <nav>
-    <ul id="nav-menu">
-      <!-- 导航分类由 JS 动态生成 -->
-    </ul>
-  </nav>
+    <main id="main-content">
+      <!-- 这里由 JS 自动生成内容 -->
+    </main>
 
-  <main id="main-content">
-    <!-- 内容区域由 JS 动态生成 -->
-  </main>
+    <footer>
+      <p>&copy; 2024 WebNav Hub. Built with Cloudflare.</p>
+    </footer>
+  </div>
 
-  <!-- 需求3：弹窗模式的编辑表单 -->
-  <div id="modal-overlay" class="modal-overlay">
+  <!-- 编辑弹窗 -->
+  <div id="modal-overlay">
     <div class="modal-content">
-      <span class="close-modal">&times;</span>
+      <div class="modal-header">
+        <h3>管理与设置</h3>
+        <span class="close-modal">&times;</span>
+      </div>
       
-      <!-- 需求1：背景设置区域 -->
-      <div class="settings-group">
-        <h3>个性化背景</h3>
-        <div class="bg-options">
-          <button type="button" class="action-btn" onclick="setBackground('random')">随机风景</button>
-          <button type="button" class="action-btn" onclick="setBackground('gradient')">极简灰色</button>
-          <div class="custom-bg-box">
-            <input type="text" id="custom-bg-input" placeholder="输入背景图URL...">
-            <button type="button" class="action-btn" onclick="setBackground('custom')">应用</button>
-          </div>
+      <div class="settings-area">
+        <p>背景设置</p>
+        <div class="bg-btns">
+          <button onclick="setBackground('random')">随机风景</button>
+          <button onclick="setBackground('gradient')">极简灰色</button>
         </div>
       </div>
       <hr>
-
-      <h2>添加 / 编辑链接</h2>
       <form id="link-form">
-        <input type="password" id="edit-password" name="edit_password" placeholder="管理员密码" required>
-        
-        <!-- 需求5：支持动态分类 -->
-        <input type="text" id="category" name="category" placeholder="分类 (如: 社交媒体 / Ai工具)" list="category-list" required>
+        <input type="password" name="edit_password" placeholder="管理员密码" required>
+        <input type="text" id="category" name="category" placeholder="分类名称" list="category-list" required>
         <datalist id="category-list"></datalist>
-
-        <input type="text" id="title" name="title" placeholder="网站名称" required>
-        <input type="url" id="url" name="url" placeholder="网站URL (https://...)" required>
-        
-        <!-- 需求4：图标预览 -->
-        <div class="icon-preview-wrapper">
-          <img id="icon-preview" src="https://www.google.com/s2/favicons?domain=google.com&sz=64" alt="Icon">
-          <span>图标预览 (输入URL自动获取)</span>
+        <input type="text" name="title" placeholder="网站标题" required>
+        <input type="url" id="url-input" name="url" placeholder="网站URL (https://...)" required>
+        <div class="preview-box">
+          <img id="icon-preview" src="https://www.google.com/s2/favicons?domain=google.com&sz=64">
+          <span>图标预览</span>
         </div>
-        
-        <button type="submit" class="save-btn">确认保存</button>
+        <button type="submit" class="submit-btn">保存站点</button>
       </form>
     </div>
   </div>
 
-  <button id="toggle-edit" title="右键页面空白处也可打开"><i class="fas fa-plus"></i></button>
-
-  <footer>
-    <p>&copy; 2024 WebNav Hub. Built with Cloudflare.</p>
-  </footer>
+  <button id="toggle-edit-btn"><i class="fas fa-plus"></i></button>
 
   <script src="script.js"></script>
 </body>
