@@ -9,11 +9,15 @@
 </head>
 <body>
   <div id="bg-canvas"></div>
+
   <div class="wrapper">
     <header>
       <a href="/" class="logo-link"><h1>WebNav Hub</h1></a>
       <div class="search-area main-search">
-        <div class="search-tabs"><div class="tab" data-type="internal">站内</div><div class="tab active" data-type="web">搜索</div></div>
+        <div class="search-tabs">
+          <div class="tab" data-type="internal">站内</div>
+          <div class="tab active" data-type="web">搜索</div>
+        </div>
         <div class="search-pill">
           <input type="text" class="search-input" placeholder="百度一下" autocomplete="off">
           <button class="search-trigger-btn"><i class="fas fa-search"></i></button>
@@ -38,49 +42,71 @@
     <button class="side-btn" id="btn-cat-admin"><i class="fas fa-folder"></i></button>
   </div>
 
+  <!-- 搜索弹窗 -->
   <div class="modal" id="modal-search">
     <div class="modal-overlay"></div>
     <div class="modal-body search-modal-content">
       <div class="search-area modal-inner-search">
-        <div class="search-tabs"><div class="tab" data-type="internal">站内</div><div class="tab active" data-type="web">搜索</div></div>
-        <div class="search-pill"><input type="text" class="search-input"><button class="search-trigger-btn"><i class="fas fa-search"></i></button></div>
-        <div class="search-engines"><span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span><span class="engine" data-url="https://www.google.com/search?q=">Google</span><span class="engine" data-url="https://www.bing.com/search?q=">Bing</span></div>
+        <div class="search-tabs">
+          <div class="tab" data-type="internal">站内</div>
+          <div class="tab active" data-type="web">搜索</div>
+        </div>
+        <div class="search-pill">
+          <input type="text" class="search-input">
+          <button class="search-trigger-btn"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="search-engines">
+          <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
+          <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
+          <span class="engine" data-url="https://www.bing.com/search?q=">Bing</span>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- 编辑站点弹窗 -->
   <div class="modal" id="modal-link">
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
       <h3>编辑站点</h3>
       <form id="link-form">
-        <!-- 每一行都包裹在 modal-row 中确保对齐 -->
-        <div class="modal-row"><input type="password" name="password" id="main-pwd" placeholder="管理密码" class="full-width"></div>
-        <div class="modal-row">
+        <!-- 密码框对齐 -->
+        <input type="password" name="password" id="main-pwd" placeholder="管理密码" class="full-width" required>
+        
+        <div class="modal-row mt-15">
             <input type="text" name="category" id="in-cat" placeholder="分类名称" required>
             <select id="cat-hint" onchange="document.getElementById('in-cat').value=this.value"></select>
         </div>
-        <div class="modal-row"><input type="text" name="title" id="in-title" placeholder="站点标题" class="full-width" required></div>
-        <div class="modal-row">
+        
+        <input type="text" name="title" id="in-title" placeholder="站点标题" class="full-width" required>
+        
+        <div class="modal-row url-box-row">
             <input type="url" name="url" id="in-url" placeholder="https://..." required>
-            <div class="icon-preview-square"><img id="prev-img" style="display:none;"></div>
+            <!-- 解决破图：默认隐藏图片 -->
+            <div class="icon-preview-box">
+                <img id="prev-img" style="display:none;">
+            </div>
         </div>
-        <div class="modal-row"><button type="submit" class="save-btn-new">保存站点</button></div>
+        
+        <button type="submit" class="save-btn-new">保存站点</button>
       </form>
     </div>
   </div>
 
+  <!-- 分类管理弹窗 -->
   <div class="modal" id="modal-cat">
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
       <h3>分类管理</h3>
       <div id="cat-list-box"></div>
-      <div class="add-cat-footer">
+      <!-- 对齐添加分类区域 -->
+      <div class="add-cat-area mt-15">
           <input type="text" id="new-cat-input" placeholder="新分类名称">
-          <button class="btn-mini blue" style="flex: 0 0 140px;" onclick="addNewCategory()">+ 添加分类</button>
+          <button class="btn-add-cat" onclick="addNewCategory()">+ 添加</button>
       </div>
     </div>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
