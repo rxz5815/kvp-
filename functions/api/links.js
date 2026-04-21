@@ -1,12 +1,16 @@
 export async function onRequest(context) {
   const { request, env } = context;
   const { password, link, action, oldCategory, newCategory } = await request.json().catch(() => ({}));
+
   if (request.method === 'GET') {
     const links = await env.LINKS_KV.get('all_links');
     return new Response(links || '[]', { headers: { 'Content-Type': 'application/json' } });
   }
+
   if (password !== env.EDIT_PASSWORD) return new Response('Unauthorized', { status: 401 });
+
   let links = JSON.parse(await env.LINKS_KV.get('all_links') || '[]');
+
   if (action === 'delete') {
     links = links.filter(l => l.url !== link.url);
   } else if (action === 'renameCategory') {
@@ -18,8 +22,10 @@ export async function onRequest(context) {
   } else {
     links = links.filter(l => l.title !== 'placeholder_hidden');
     const idx = links.findIndex(l => l.url === link.url);
-    if (idx > -1) links[idx] = link; else links.push(link);
+    if (idx > -1) links[idx] = link;
+    else links.push(link);
   }
+
   await env.LINKS_KV.put('all_links', JSON.stringify(links));
   return new Response('OK', { status: 200 });
 }
