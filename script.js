@@ -10,17 +10,16 @@ document.addEventListener('DOMContentLoaded', function() {
         'linear-gradient(135deg, #0f0c29, #302b63, #24243e)'
     ];
 
-    // --- 背景逻辑 ---
     const updateBg = (val, save = true) => {
         const bg = document.getElementById('bg-canvas');
         if(val.startsWith('http')) bg.style.backgroundImage = `url(${val})`;
         else bg.style.background = val;
-        if(save) localStorage.setItem('nav_bg_v12', val);
+        if(save) localStorage.setItem('nav_bg_v13', val);
     };
-    updateBg(localStorage.getItem('nav_bg_v12') || grads[0]);
+    updateBg(localStorage.getItem('nav_bg_v13') || grads[0]);
 
     document.getElementById('btn-toggle-bg').onclick = () => {
-        let curr = localStorage.getItem('nav_bg_v12');
+        let curr = localStorage.getItem('nav_bg_v13');
         let nextIdx = (grads.indexOf(curr) + 1) % grads.length;
         updateBg(grads[nextIdx]);
     };
@@ -30,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if(res.url) updateBg(res.url);
     };
 
-    // --- 数据加载 ---
     async function fetchData() {
         try {
             const res = await fetch('/api/links');
@@ -91,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- 搜索逻辑 ---
+    // --- 搜索逻辑彻底重构：修复输入锁死、隐藏标题、支持数字删除 ---
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
         const inp = box.querySelector('.search-input');
@@ -102,22 +100,47 @@ document.addEventListener('DOMContentLoaded', function() {
             t.classList.add('active');
             const isInt = t.dataset.type === 'internal';
             if(engines) engines.style.display = isInt ? 'none' : 'flex';
-            inp.placeholder = isInt ? "快速检索站内站点..." : "百度一下";
+            inp.placeholder = isInt ? "快速检索站内..." : "百度一下";
+            inp.value = ""; // 切换模式时清空
+            document.body.classList.remove('is-searching');
+            document.querySelectorAll('.link-card, section').forEach(el => el.style.display = '');
         });
 
-        const exec = () => {
-            const q = inp.value.trim(); if(!q) return;
+        // 使用 input 事件监听，解决无法输入数字和删除的问题
+        inp.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase();
             const isInt = box.querySelector('.tab.active').dataset.type === 'internal';
+            
             if(isInt) {
-                document.querySelectorAll('.link-card').forEach(c => {
-                    c.style.display = c.innerText.toLowerCase().includes(q.toLowerCase()) ? 'block' : 'none';
-                });
-                if(boxSel.includes('modal')) document.getElementById('modal-search').style.display = 'none';
-            } else window.open(currentEngine + encodeURIComponent(q), '_blank');
-        };
+                if(q.length > 0) {
+                    document.body.classList.add('is-searching'); // 隐藏分类标题和导航
+                    document.querySelectorAll('.link-card').forEach(card => {
+                        const txt = card.innerText.toLowerCase();
+                        card.style.display = txt.includes(q) ? 'block' : 'none';
+                    });
+                    // 隐藏完全没有匹配项的整个 Section 容器
+                    document.querySelectorAll('section').forEach(sec => {
+                        const hasVisible = Array.from(sec.querySelectorAll('.link-card')).some(c => c.style.display !== 'none');
+                        sec.style.display = hasVisible ? 'block' : 'none';
+                    });
+                } else {
+                    document.body.classList.remove('is-searching');
+                    document.querySelectorAll('.link-card, section').forEach(el => el.style.display = '');
+                }
+            }
+        });
 
-        box.querySelector('.search-trigger-btn').onclick = exec;
-        inp.onkeydown = e => e.key === 'Enter' && exec();
+        // 只有 Web 搜索才处理 Enter
+        inp.onkeydown = e => {
+            if(e.key === 'Enter') {
+                const isInt = box.querySelector('.tab.active').dataset.type === 'internal';
+                if(!isInt && inp.value.trim()) {
+                    window.open(currentEngine + encodeURIComponent(inp.value.trim()), '_blank');
+                } else if(isInt && boxSel.includes('modal')) {
+                    document.getElementById('modal-search').style.display = 'none';
+                }
+            }
+        };
     }
     setupSearch('.main-search'); setupSearch('.modal-inner-search');
 
@@ -129,22 +152,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- 弹窗逻辑 ---
     document.querySelectorAll('.modal-overlay').forEach(el => el.onclick = () => {
         document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
     });
 
-    // --- 编辑站点逻辑修复（含防破图图标抓取） ---
     window.openEdit = (l = {}) => {
         document.getElementById('modal-link').style.display = 'flex';
         document.getElementById('in-cat').value = l.category || '';
         document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
-        
         const urlInput = document.getElementById('in-url');
         const prevImg = document.getElementById('prev-img');
-        
         urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
-        
         if (l.icon && l.icon !== '') {
             prevImg.src = l.icon;
             prevImg.classList.add('loaded');
@@ -170,7 +188,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) { prevImg.classList.remove('loaded'); }
     };
 
-    // --- 分类管理与排序 ---
     document.getElementById('btn-cat-admin').onclick = () => {
         renderCatAdmin();
         document.getElementById('modal-cat').style.display = 'flex';
@@ -202,7 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- 核心 API ---
     async function apiReq(action, data) {
         let pwd = localStorage.getItem('auth_pwd_v9') || data.password || prompt("管理密码:");
         if(!pwd) return;
@@ -229,9 +245,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if(await apiReq('save', { link: data })) document.getElementById('modal-link').style.display='none';
     };
 
-    // --- 其他 UI ---
     document.getElementById('btn-top').onclick = () => window.scrollTo({top:0, behavior:'smooth'});
-    document.getElementById('btn-float-search').onclick = () => document.getElementById('modal-search').style.display='flex';
+    document.getElementById('btn-float-search').onclick = () => {
+        document.getElementById('modal-search').style.display='flex';
+        setTimeout(() => document.querySelector('.modal-inner-search .search-input').focus(), 100);
+    };
     document.getElementById('btn-add-site').onclick = () => openEdit();
     window.onscroll = () => {
         const y = window.scrollY;
