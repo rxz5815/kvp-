@@ -81,7 +81,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     box-sizing: border-box !important;
 }
 #cat-hint { 
-    width: 140px !important; 
+    width: 120px !important; 
     flex: none !important; 
     cursor: pointer;
     appearance: none; 
