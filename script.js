@@ -58,59 +58,67 @@ async function fetchData() {
     fetchData();
 
     // 页面渲染
-    function render() {
+function render() {
         const main = document.getElementById('main-content');
         const nav = document.getElementById('category-ul');
         const hint = document.getElementById('cat-hint');
-        main.innerHTML = ''; nav.innerHTML = ''; hint.innerHTML = '<option value="">选择分类</option>';
+        main.innerHTML = '';
+        nav.innerHTML = '';
+        hint.innerHTML = '<option value="">快捷选择</option>';
 
+        // 1. 数据按分类分组
         const grouped = allLinks.reduce((acc, l) => {
             if (!acc[l.category]) acc[l.category] = [];
             if (l.title !== 'placeholder_hidden') acc[l.category].push(l);
             return acc;
         }, {});
 
+        // 2. 结合排序顺序生成分类列表
         let cats = Object.keys(grouped);
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
 
-sortedCats.forEach(cat => {
+        // 3. 循环渲染每一个分类
+        sortedCats.forEach(cat => {
             nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
             hint.innerHTML += `<option value="${cat}">${cat}</option>`;
+            
             const sec = document.createElement('section');
             sec.id = cat;
             sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
             const grid = sec.querySelector('.link-grid');
             
-            // --- 核心拖拽逻辑：确保 grid 始终监听事件 ---
-            grid.ondragover = e => { 
-                e.preventDefault(); 
-                grid。classList。add('drag-over'); // 鼠标移入，显示线条窗口
+            // --- 拖拽核心逻辑：确保即使是空分类也能响应 ---
+            grid.ondragover = function(e) {
+                e.preventDefault();
+                grid.classList.add('drag-over');
             };
-            grid.ondragleave = () => {
-                grid.classList.remove('drag-over'); // 鼠标移出，隐藏线条窗口
+            grid.ondragleave = function() {
+                grid.classList.remove('drag-over');
             };
-            grid.ondrop = async (e) => {
-                grid.classList.remove('drag-over'); // 放下后，隐藏线条窗口
+            grid.ondrop = async function(e) {
+                grid.classList.remove('drag-over');
                 const url = e.dataTransfer.getData('text/plain');
                 const item = allLinks.find(l => l.url === url);
                 if(item && item.category !== cat) {
-                    item.category = cat; 
-                    await apiReq('save', { link: item }); // 保存到后端
+                    item.category = cat;
+                    await apiReq('save', { link: item });
                 }
             };
 
-            // 渲染该分类下的已有卡片
-            (grouped[cat] || []).forEach(l => {
+            // 渲染站点卡片
+            const currentLinks = grouped[cat] || [];
+            currentLinks.forEach(l => {
                 grid.appendChild(createCard(l));
             });
             main.appendChild(sec);
         });
+    }
             
             // 绑定拖拽
             grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
             grid.ondragleave = () => grid.classList.remove('drag-over');
-            grid。ondrop = async (e) => {
+            grid.ondrop = async (e) => {
                 grid.classList.remove('drag-over');
                 const url = e.dataTransfer.getData('text/plain');
                 const item = allLinks.find(l => l.url === url);
