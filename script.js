@@ -14,12 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const bg = document.getElementById('bg-canvas');
         if(val.startsWith('http')) bg.style.backgroundImage = `url(${val})`;
         else bg.style.background = val;
-        if(save) localStorage.setItem('nav_bg_v13', val);
+        if(save) localStorage.setItem('nav_bg_v14', val);
     };
-    updateBg(localStorage.getItem('nav_bg_v13') || grads[0]);
+    updateBg(localStorage.getItem('nav_bg_v14') || grads[0]);
 
     document.getElementById('btn-toggle-bg').onclick = () => {
-        let curr = localStorage.getItem('nav_bg_v13');
+        let curr = localStorage.getItem('nav_bg_v14');
         let nextIdx = (grads.indexOf(curr) + 1) % grads.length;
         updateBg(grads[nextIdx]);
     };
@@ -59,86 +59,73 @@ document.addEventListener('DOMContentLoaded', function() {
         sortedCats.forEach(cat => {
             nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
             hint.innerHTML += `<option value="${cat}">${cat}</option>`;
-            
             const sec = document.createElement('section');
             sec.id = cat;
             sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
             const grid = sec.querySelector('.link-grid');
             
-            grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
-            grid.ondragleave = () => grid.classList.remove('drag-over');
-            grid.ondrop = async (e) => {
-                grid.classList.remove('drag-over');
-                const url = e.dataTransfer.getData('text/plain');
-                const item = allLinks.find(l => l.url === url);
-                if(item && item.category !== cat) {
-                    item.category = cat; await apiReq('save', { link: item });
-                }
-            };
-
             (grouped[cat] || []).forEach(l => {
-                const card = document.createElement('div');
-                card.className = 'link-card'; card.draggable = true;
-                card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
-                card.onclick = () => window.open(l.url, '_blank');
-                card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
-                card.ondragstart = (e) => e.dataTransfer.setData('text/plain', l.url);
+                const card = createCard(l);
                 grid.appendChild(card);
             });
             main.appendChild(sec);
         });
     }
 
-    // --- 搜索逻辑彻底重构：修复输入锁死、隐藏标题、支持数字删除 ---
+    // 通用卡片创建函数
+    function createCard(l) {
+        const card = document.createElement('div');
+        card.className = 'link-card'; card.draggable = true;
+        card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
+        card.onclick = () => window.open(l.url, '_blank');
+        card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
+        card.ondragstart = (e) => e.dataTransfer.setData('text/plain', l.url);
+        return card;
+    }
+
+    // --- 搜索逻辑改进：弹窗内直接显示结果 ---
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
         const inp = box.querySelector('.search-input');
         const engines = box.querySelector('.search-engines');
-        
-        box.querySelectorAll('.tab').forEach(t => t.onclick = () => {
-            box.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-            t.classList.add('active');
-            const isInt = t.dataset.type === 'internal';
-            if(engines) engines.style.display = isInt ? 'none' : 'flex';
-            inp.placeholder = isInt ? "快速检索站内..." : "百度一下";
-            inp.value = ""; // 切换模式时清空
-            document.body.classList.remove('is-searching');
-            document.querySelectorAll('.link-card, section').forEach(el => el.style.display = '');
-        });
+        const isModal = boxSel.includes('modal');
+        const modalGrid = document.getElementById('modal-results-area');
 
-        // 使用 input 事件监听，解决无法输入数字和删除的问题
         inp.addEventListener('input', function() {
             const q = this.value.trim().toLowerCase();
             const isInt = box.querySelector('.tab.active').dataset.type === 'internal';
             
             if(isInt) {
-                if(q.length > 0) {
-                    document.body.classList.add('is-searching'); // 隐藏分类标题和导航
-                    document.querySelectorAll('.link-card').forEach(card => {
-                        const txt = card.innerText.toLowerCase();
-                        card.style.display = txt.includes(q) ? 'block' : 'none';
-                    });
-                    // 隐藏完全没有匹配项的整个 Section 容器
-                    document.querySelectorAll('section').forEach(sec => {
-                        const hasVisible = Array.from(sec.querySelectorAll('.link-card')).some(c => c.style.display !== 'none');
-                        sec.style.display = hasVisible ? 'block' : 'none';
-                    });
+                if(isModal) {
+                    // 弹窗搜索：直接在标红区渲染
+                    modalGrid.innerHTML = '';
+                    if(q.length > 0) {
+                        const matches = allLinks.filter(l => l.title !== 'placeholder_hidden' && l.title.toLowerCase().includes(q));
+                        matches.forEach(l => modalGrid.appendChild(createCard(l)));
+                    }
                 } else {
-                    document.body.classList.remove('is-searching');
-                    document.querySelectorAll('.link-card, section').forEach(el => el.style.display = '');
+                    // 主页搜索：原来的逻辑
+                    if(q.length > 0) {
+                        document.body.classList.add('is-searching');
+                        document.querySelectorAll('.link-card').forEach(c => {
+                            c.style.display = c.innerText.toLowerCase().includes(q) ? 'block' : 'none';
+                        });
+                        document.querySelectorAll('section').forEach(sec => {
+                            const has = Array.from(sec.querySelectorAll('.link-card')).some(c => c.style.display !== 'none');
+                            sec.style.display = has ? 'block' : 'none';
+                        });
+                    } else {
+                        document.body.classList.remove('is-searching');
+                        document.querySelectorAll('.link-card, section').forEach(el => el.style.display = '');
+                    }
                 }
             }
         });
 
-        // 只有 Web 搜索才处理 Enter
         inp.onkeydown = e => {
             if(e.key === 'Enter') {
                 const isInt = box.querySelector('.tab.active').dataset.type === 'internal';
-                if(!isInt && inp.value.trim()) {
-                    window.open(currentEngine + encodeURIComponent(inp.value.trim()), '_blank');
-                } else if(isInt && boxSel.includes('modal')) {
-                    document.getElementById('modal-search').style.display = 'none';
-                }
+                if(!isInt && inp.value.trim()) window.open(currentEngine + encodeURIComponent(inp.value.trim()), '_blank');
             }
         };
     }
@@ -154,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.modal-overlay').forEach(el => el.onclick = () => {
         document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        document.getElementById('modal-results-area').innerHTML = ''; // 清空结果
     });
 
     window.openEdit = (l = {}) => {
@@ -164,20 +152,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const prevImg = document.getElementById('prev-img');
         urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
         if (l.icon && l.icon !== '') {
-            prevImg.src = l.icon;
-            prevImg.classList.add('loaded');
+            prevImg.src = l.icon; prevImg.classList.add('loaded');
         } else {
-            prevImg.src = '';
-            prevImg.classList.remove('loaded');
+            prevImg.src = ''; prevImg.classList.remove('loaded');
         }
     };
 
     document.getElementById('in-url').oninput = function() {
         const val = this.value.trim();
         const prevImg = document.getElementById('prev-img');
-        if (!val || !val.startsWith('http')) {
-            prevImg.src = ''; prevImg.classList.remove('loaded'); return;
-        }
+        if (!val || !val.startsWith('http')) { prevImg.src = ''; prevImg.classList.remove('loaded'); return; }
         try {
             const domain = new URL(val).hostname;
             const iconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
@@ -203,7 +187,13 @@ document.addEventListener('DOMContentLoaded', function() {
         sortedCats.forEach((c, idx) => {
             const row = document.createElement('div');
             row.className = 'cat-admin-row'; row.draggable = true;
-            row.innerHTML = `<i class="fas fa-bars drag-handle"></i><input type="text" value="${c}"><div class="row-btns"><button class="btn-mini blue" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div>`;
+            row.innerHTML = `
+                <i class="fas fa-bars drag-handle"></i>
+                <input type="text" value="${c}">
+                <div class="row-btns">
+                    <button class="btn-mini blue" onclick="renameCat('${c}', this)">改名</button>
+                    <button class="btn-mini red" onclick="deleteCat('${c}')">删除</button>
+                </div>`;
             row.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
             row.ondragend = () => row.style.opacity = '1';
             row.ondragover = e => e.preventDefault();
