@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const main = document.getElementById('main-content');
         const nav = document.getElementById('category-ul');
         const hint = document.getElementById('cat-hint');
-        main.innerHTML = ''; nav.innerHTML = ''; hint.innerHTML = '<option value="">快捷选择</option>';
+        main.innerHTML = ''; nav.innerHTML = ''; hint.innerHTML = '<option value="">选择分类</option>';
 
         const grouped = allLinks.reduce((acc, l) => {
             if (!acc[l.category]) acc[l.category] = [];
