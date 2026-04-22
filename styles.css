@@ -143,8 +143,8 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     left: 50%;
     transform: translateX(-50%);
     margin-top: 15px;       /* 与卡片保持 10px 间距 */
-    background: rgba(0, 0, 0, 0.2); /* 稍微加深背景 */
-    color: #fff;
+    background: rgba(255, 255, 255, 0.75); /* 稍微加深背景 */
+    color: #000000;
     padding: 8px 12px;      /* 增加内边距，更有呼吸感 */
     border-radius: 8px;
     font-size: 12px;
@@ -154,7 +154,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     transition: opacity 0.15s;
 
     /* --- 核心修复：换行逻辑 --- */
-    width: 150px;           /* 设置一个固定宽度，超过就换行 */
+    width: 115px;           /* 设置一个固定宽度，超过就换行 */
     white-space: normal;    /* 允许文字自然换行 */
     word-wrap: break-word;  /* 强制长单词/无空格字符换行 */
     line-height: 1.5;       /* 增加行高，多行时阅读更舒适 */
