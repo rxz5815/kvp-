@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
             t.classList.add('active');
             const isInt = t.dataset.type === 'internal';
             if(engineBar) engineBar.style.display = isInt ? 'none' : 'flex';
-            inp.placeholder = isInt ? "快速检索站内..." : "输入搜索内容";
+            inp.placeholder = isInt ? "快速检索站内站点..." : "输入搜索内容";
             inp.value = ""; 
             if(isModal) resultsArea.innerHTML = '';
             else {
