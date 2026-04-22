@@ -10,17 +10,17 @@ document.addEventListener('DOMContentLoaded', function() {
         'linear-gradient(135deg, #0f0c29, #302b63, #24243e)'
     ];
 
-    // --- 1. 背景渐变切换修复 ---
+    // --- 背景逻辑 ---
     const updateBg = (val, save = true) => {
         const bg = document.getElementById('bg-canvas');
         if(val.startsWith('http')) bg.style.backgroundImage = `url(${val})`;
         else bg.style.background = val;
-        if(save) localStorage.setItem('nav_bg_v11', val);
+        if(save) localStorage.setItem('nav_bg_v12', val);
     };
-    updateBg(localStorage.getItem('nav_bg_v11') || grads[0]);
+    updateBg(localStorage.getItem('nav_bg_v12') || grads[0]);
 
     document.getElementById('btn-toggle-bg').onclick = () => {
-        let curr = localStorage.getItem('nav_bg_v11');
+        let curr = localStorage.getItem('nav_bg_v12');
         let nextIdx = (grads.indexOf(curr) + 1) % grads.length;
         updateBg(grads[nextIdx]);
     };
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(res.url) updateBg(res.url);
     };
 
-    // --- 2. 数据获取与渲染 ---
+    // --- 数据加载 ---
     async function fetchData() {
         try {
             const res = await fetch('/api/links');
@@ -67,7 +67,6 @@ document.addEventListener('DOMContentLoaded', function() {
             sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
             const grid = sec.querySelector('.link-grid');
             
-            // 找回跨分类拖拽
             grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
             grid.ondragleave = () => grid.classList.remove('drag-over');
             grid.ondrop = async (e) => {
@@ -92,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- 3. 搜索功能彻底修复 ---
+    // --- 搜索逻辑 ---
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
         const inp = box.querySelector('.search-input');
@@ -104,7 +103,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const isInt = t.dataset.type === 'internal';
             if(engines) engines.style.display = isInt ? 'none' : 'flex';
             inp.placeholder = isInt ? "快速检索站内站点..." : "百度一下";
-            inp.focus();
         });
 
         const exec = () => {
@@ -119,11 +117,10 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         box.querySelector('.search-trigger-btn').onclick = exec;
-        inp.onkeydown = e => { if(e.key === 'Enter') exec(); };
+        inp.onkeydown = e => e.key === 'Enter' && exec();
     }
     setupSearch('.main-search'); setupSearch('.modal-inner-search');
 
-    // 引擎切换处理
     document.body.addEventListener('click', e => {
         if(e.target.classList.contains('engine')) {
             document.querySelectorAll('.engine').forEach(x => x.classList.remove('active'));
@@ -132,12 +129,48 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- 4. 弹窗控制：点击阴影关闭 ---
+    // --- 弹窗逻辑 ---
     document.querySelectorAll('.modal-overlay').forEach(el => el.onclick = () => {
         document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
     });
 
-    // --- 5. 分类管理拖拽排序 ---
+    // --- 编辑站点逻辑修复（含防破图图标抓取） ---
+    window.openEdit = (l = {}) => {
+        document.getElementById('modal-link').style.display = 'flex';
+        document.getElementById('in-cat').value = l.category || '';
+        document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
+        
+        const urlInput = document.getElementById('in-url');
+        const prevImg = document.getElementById('prev-img');
+        
+        urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
+        
+        if (l.icon && l.icon !== '') {
+            prevImg.src = l.icon;
+            prevImg.classList.add('loaded');
+        } else {
+            prevImg.src = '';
+            prevImg.classList.remove('loaded');
+        }
+    };
+
+    document.getElementById('in-url').oninput = function() {
+        const val = this.value.trim();
+        const prevImg = document.getElementById('prev-img');
+        if (!val || !val.startsWith('http')) {
+            prevImg.src = ''; prevImg.classList.remove('loaded'); return;
+        }
+        try {
+            const domain = new URL(val).hostname;
+            const iconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            const tempImg = new Image();
+            tempImg.src = iconUrl;
+            tempImg.onload = () => { prevImg.src = iconUrl; prevImg.classList.add('loaded'); };
+            tempImg.onerror = () => { prevImg.src = ''; prevImg.classList.remove('loaded'); };
+        } catch (e) { prevImg.classList.remove('loaded'); }
+    };
+
+    // --- 分类管理与排序 ---
     document.getElementById('btn-cat-admin').onclick = () => {
         renderCatAdmin();
         document.getElementById('modal-cat').style.display = 'flex';
@@ -154,7 +187,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const row = document.createElement('div');
             row.className = 'cat-admin-row'; row.draggable = true;
             row.innerHTML = `<i class="fas fa-bars drag-handle"></i><input type="text" value="${c}"><div class="row-btns"><button class="btn-mini blue" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div>`;
-            
             row.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
             row.ondragend = () => row.style.opacity = '1';
             row.ondragover = e => e.preventDefault();
@@ -170,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- 基础 API ---
+    // --- 核心 API ---
     async function apiReq(action, data) {
         let pwd = localStorage.getItem('auth_pwd_v9') || data.password || prompt("管理密码:");
         if(!pwd) return;
@@ -190,20 +222,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if(name) apiReq('addCategory', { newCategory: name }).then(() => document.getElementById('new-cat-input').value = '');
     };
 
-    window.openEdit = (l = {}) => {
-        document.getElementById('modal-link').style.display = 'flex';
-        document.getElementById('in-cat').value = l.category || '';
-        document.getElementById('in-title').value = l.title === 'placeholder_hidden' ? '' : (l.title || '');
-        document.getElementById('in-url').value = l.url?.includes('placeholder') ? '' : (l.url || '');
-    };
-
     document.getElementById('link-form').onsubmit = async function(e) {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(this));
-        data.icon = `https://www.google.com/s2/favicons?domain=${new URL(data.url).hostname}&sz=64`;
+        data.icon = document.getElementById('prev-img').src;
         if(await apiReq('save', { link: data })) document.getElementById('modal-link').style.display='none';
     };
 
+    // --- 其他 UI ---
     document.getElementById('btn-top').onclick = () => window.scrollTo({top:0, behavior:'smooth'});
     document.getElementById('btn-float-search').onclick = () => document.getElementById('modal-search').style.display='flex';
     document.getElementById('btn-add-site').onclick = () => openEdit();
