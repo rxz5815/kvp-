@@ -5,29 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WebNav Hub</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- 引入 FontAwesome 图标库 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
-  <!-- 背景承载层 -->
   <div id="bg-canvas"></div>
-
   <div class="wrapper">
-    <!-- 头部：标题与搜索 -->
     <header>
       <a href="/" class="logo-link"><h1>WebNav Hub</h1></a>
       <div class="search-area main-search">
-        <!-- 搜索 Tab 切换 -->
         <div class="search-tabs">
           <div class="tab" data-type="internal">站内</div>
           <div class="tab active" data-type="web">搜索</div>
         </div>
-        <!-- 搜索输入框组合 -->
         <div class="search-pill">
           <input type="text" class="search-input" placeholder="百度一下" autocomplete="off">
           <button class="search-trigger-btn"><i class="fas fa-search"></i></button>
         </div>
-        <!-- 网页搜索引擎列表 (JS 控制显隐) -->
         <div class="search-engines">
           <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
           <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
@@ -35,25 +28,20 @@
         </div>
       </div>
     </header>
-
-    <!-- 侧边固定的导航栏 -->
     <nav id="sticky-nav"><ul id="category-ul"></ul></nav>
-
-    <!-- 核心站点展示区 -->
     <main id="main-content"></main>
   </div>
 
-  <!-- 右下角悬浮工具组 -->
   <div class="side-tools">
     <button class="side-btn" id="btn-top" style="display:none;" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
     <button class="side-btn" id="btn-float-search" style="display:none;" title="全局搜索"><i class="fas fa-search"></i></button>
     <button class="side-btn" id="btn-add-site" title="添加站点"><i class="fas fa-plus"></i></button>
-    <button class="side-btn" id="btn-toggle-bg" title="切换背景色"><i class="fas fa-palette"></i></button>
+    <button class="side-btn" id="btn-toggle-bg" title="切换预设背景"><i class="fas fa-palette"></i></button>
     <button class="side-btn" id="btn-random-bg" title="随机美图背景"><i class="fas fa-image"></i></button>
     <button class="side-btn" id="btn-cat-admin" title="分类管理"><i class="fas fa-folder"></i></button>
   </div>
 
-  <!-- 1. 全局搜索弹窗 (侧边栏触发) -->
+  <!-- 搜索弹窗 -->
   <div class="modal" id="modal-search">
     <div class="modal-overlay"></div>
     <div class="modal-body search-modal-container">
@@ -72,50 +60,45 @@
           <span class="engine" data-url="https://www.bing.com/search?q=">Bing</span>
         </div>
       </div>
-      <!-- 弹窗内的站内搜索结果展示区 -->
       <div id="modal-results-area" class="link-grid"></div>
     </div>
   </div>
 
-  <!-- 2. 编辑站点弹窗 -->
+  <!-- 编辑站点弹窗 (修复点 4: 像素级对齐结构) -->
   <div class="modal" id="modal-link">
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
       <h3 class="modal-title-center">编辑站点</h3>
       <form id="link-form">
-        <!-- 密码验证 -->
+        <!-- 管理密码：强制 100% 宽度 -->
         <input type="password" name="password" id="main-pwd" placeholder="管理密码" class="full-width-input">
         
-        <!-- 分类选择对齐行 (修复图 20) -->
+        <!-- 分类名称行：左右对齐 -->
         <div class="modal-row custom-row-align">
             <input type="text" name="category" id="in-cat" placeholder="分类名称" required>
             <select id="cat-hint"></select>
         </div>
         
-        <!-- 标题输入 -->
+        <!-- 站点标题：强制 100% 宽度 -->
         <input type="text" name="title" id="in-title" placeholder="站点标题" class="full-width-input" required>
         
-        <!-- 网址输入与预览行 -->
+        <!-- 网址行：网址框 + 图标预览框 强制高度一致并左右对齐 -->
         <div class="modal-row custom-row-align">
             <input type="url" name="url" id="in-url" placeholder="https://..." required>
             <div class="icon-preview-box"><img id="prev-img" src=""></div>
         </div>
         
-        <!-- 保存按钮 -->
         <button type="submit" class="save-btn-new">保存站点</button>
       </form>
     </div>
   </div>
 
-  <!-- 3. 分类管理弹窗 -->
+  <!-- 分类管理弹窗 -->
   <div class="modal" id="modal-cat">
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
       <h3 class="modal-title-center">分类管理 (拖拽排序)</h3>
-      <!-- 分类列表展示与滚动区 -->
       <div id="cat-list-box" class="scroll-area"></div>
-      
-      <!-- 底部添加新分类 -->
       <div class="add-cat-area">
           <input type="text" id="new-cat-input" placeholder="新分类名称">
           <button class="btn-add-cat" onclick="addNewCategory()">+ 添加</button>
@@ -123,7 +106,6 @@
     </div>
   </div>
 
-  <!-- 引入核心逻辑脚本 -->
   <script src="script.js"></script>
 </body>
 </html>
