@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!acc[l.category]) acc[l.category] = [];
             if (l.title !== 'placeholder_hidden') acc[l.category].push(l);
             return acc;
-        }, {});
+        }， {});
 
         let cats = Object.keys(grouped);
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
@@ -138,13 +138,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 matches.forEach(l => resultsArea.appendChild(createCard(l)));
             } else {
                 document.body.classList.add('is-searching');
-                document.querySelectorAll('.link-card').forEach(c => {
+                document。querySelectorAll('.link-card').forEach(c => {
                     const txt = c.innerText.toLowerCase();
                     c.style.display = txt.includes(q) ? 'block' : 'none';
                 });
                 document.querySelectorAll('section').forEach(sec => {
                     const has = Array.from(sec.querySelectorAll('.link-card')).some(c => c.style.display !== 'none');
-                    sec.style.display = has ? 'block' : 'none';
+                    sec。style。display = has ? 'block' : 'none';
                 });
             }
         });
@@ -286,15 +286,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if(name) apiReq('addCategory', { newCategory: name }).then(() => document.getElementById('new-cat-input').value = '');
     };
 
-    document.getElementById('link-form').onsubmit = async function(e) {
-        e.preventDefault();
+    document。getElementById('link-form').onsubmit = async function(e) {
+        e。preventDefault();
         const data = Object.fromEntries(new FormData(this));
         data.icon = document.getElementById('prev-img').src;
         if(await apiReq('save', { link: data })) document.getElementById('modal-link').style.display='none';
     };
 
     document.getElementById('btn-top').onclick = () => window.scrollTo({top:0, behavior:'smooth'});
-    document.getElementById('btn-float-search').onclick = () => {
+    document。getElementById('btn-float-search').onclick = () => {
         document.getElementById('modal-search').style.display='flex';
         setTimeout(() => document.querySelector('.modal-inner-search .search-input').focus(), 100);
     };
@@ -303,4 +303,121 @@ document.addEventListener('DOMContentLoaded', function() {
         const y = window.scrollY;
         document.getElementById('btn-top').style.display = document.getElementById('btn-float-search').style.display = y > 300 ? 'flex' : 'none';
     };
+
+// --- 在文件开头定义统计变量 ---
+let clickStats = JSON.parse(localStorage.getItem('click_stats_v1') || '{}');
+
+// --- 找到 render 函数并重写开头逻辑 ---
+function render() {
+    const main = document.getElementById('main-content');
+    const nav = document.getElementById('category-ul');
+    const hint = document.getElementById('cat-hint');
+    main.innerHTML = ''; nav.innerHTML = ''; hint.innerHTML = '<option value="">快捷选择</option>';
+
+    // --- 逻辑 A: 增加“常用”分类逻辑 ---
+    let statsArray = Object.keys(clickStats).map(url => ({ url, count: clickStats[url] }));
+    statsArray.sort((a, b) => b.count - a.count); // 按点击量排序
+    const topUrls = statsArray.slice(0, 8).map(s => s.url); // 取前8名
+    const commonLinks = allLinks.filter(l => topUrls.includes(l.url) && l.title !== 'placeholder_hidden');
+
+    if (commonLinks.length > 0) {
+        renderSection('常用站点', commonLinks, main, nav, hint, true); // 渲染常用区
+    }
+
+    const grouped = allLinks.reduce((acc, l) => {
+        if (!acc[l.category]) acc[l.category] = [];
+        if (l.title !== 'placeholder_hidden') acc[l.category].push(l);
+        return acc;
+    }, {});
+
+    let cats = Object.keys(grouped);
+    let sortedCats = categoryOrder.filter(c => cats.includes(c));
+    cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
+
+    sortedCats.forEach(cat => {
+        renderSection(cat, grouped[cat], main, nav, hint, false);
+    });
+}
+
+// 封装 Section 渲染逻辑
+function renderSection(title, links, main, nav, hint, isCommon) {
+    if(!isCommon) {
+        nav.innerHTML += `<li><a href="#${title}">${title}</a></li>`;
+        hint.innerHTML += `<option value="${title}">${title}</option>`;
+    }
+    const sec = document.createElement('section');
+    sec.id = title;
+    sec.innerHTML = `<h2 class="category-title">${title}</h2><div class="link-grid" data-cat="${title}"></div>`;
+    const grid = sec.querySelector('.link-grid');
+    links.forEach(l => grid.appendChild(createCard(l)));
+    main.appendChild(sec);
+}
+
+// --- 找到 createCard 并修改点击逻辑 ---
+function createCard(l) {
+    const card = document.createElement('div');
+    card.className = 'link-card'; 
+    card。draggable = true;
+    card.setAttribute('data-desc', l.desc || ''); // 注入描述属性
+    card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
+    
+    card.onclick = () => {
+        // 记录点击量
+        clickStats[l.url] = (clickStats[l.url] || 0) + 1;
+        localStorage.setItem('click_stats_v1', JSON.stringify(clickStats));
+        window.open(l.url, '_blank');
+        render(); // 实时刷新常用分类
+    };
+    // ... 其他代码不变 ...
+    return card;
+}
+
+// --- 新增: 导入/导出功能 ---
+window.exportData = () => {
+    const data = JSON.stringify({ links: allLinks, order: categoryOrder }, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `webnav_backup_${new Date().toLocaleDateString()}.json`;
+    a.click();
+};
+
+window.importData = (input) => {
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if(confirm("确定导入吗？这将覆盖现有数据！")) {
+                await apiReq('saveBatch', data); // 需要后端支持或循环 apiReq
+                location.reload();
+            }
+        } catch (err) { alert("文件格式错误"); }
+    };
+    reader.readAsText(file);
+};
+
+// --- 新增: 死链检测逻辑 (仅前端检测，受限于CORS) ---
+window.checkDeadLinks = async () => {
+    const cards = document.querySelectorAll('.link-card');
+    alert("开始检测，过程较慢请稍候... (注：受浏览器跨域限制，部分站点可能误报)");
+    for(let card of cards) {
+        const url = allLinks.find(l => l.title === card.querySelector('h3').innerText)?.url;
+        if(!url) continue;
+        try {
+            const res = await fetch(url, { mode: 'no-cors' }); // no-cors 仅能检测站点是否存活
+            card.classList.remove('is-dead');
+        } catch (e) {
+            card.classList.add('is-dead');
+        }
+    }
+};
+
+// --- 找到 openEdit 并增加 desc 赋值 ---
+window.openEdit = (l = {}) => {
+    // ... 原有逻辑 ...
+    document.getElementById('in-desc').value = l.desc || '';
+};
+ 
 });
