@@ -8,6 +8,14 @@ document.addEventListener('DOMContentLoaded', function() {
         'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)', // 默认渐变蓝
         'linear-gradient(135deg, #134e5e 0%, #71b280 100%)', // 渐变绿
         'linear-gradient(135deg, #202124 0%, #3c4043 100%)', // 渐变灰
+        'linear-gradient(135deg, #2c3e50 0%, #4ca1af 80%)', // 墨青蓝绿
+        'linear-gradient(45deg, #3d2b56 0%, #8e54e9 80%)', // 暗调茄紫
+        'linear-gradient(135deg, #283048 0%, #859398 80%)', // 烟灰棕
+        'linear-gradient(45deg, #1e2a38 0%, #5a7fa5 80%)', // 藏青灰
+        'linear-gradient(135deg, #192841 0%, #607d8b 80%)', // 冷调钢灰
+        'linear-gradient(45deg, #271f30 0%, #7b4397 80%)', // 暗调绛紫
+        'linear-gradient(135deg, #182c39 0%, #486a78 80%)', // 青灰棕
+        'linear-gradient(45deg, #221d2e 0%, #614e77 80%)', // 暗调藕紫
         'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'  // 渐变紫
     ];
 
