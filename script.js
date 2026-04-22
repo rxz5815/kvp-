@@ -98,7 +98,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 创建站点卡片
     function createCard(l) {
         const card = document.createElement('div');
-        card.className = 'link-card'; card.draggable = true;
+        card。className = 'link-card'; card.draggable = true;
+        if (l.desc) card.title = l.desc;
         card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
         card.onclick = () => window.open(l.url, '_blank');
         card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
@@ -209,7 +210,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.openEdit = (l = {}) => {
         document.getElementById('modal-link').style.display = 'flex';
         document.getElementById('in-cat').value = l.category || '';
-        document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
+        document。getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
+        document.getElementById('in-desc').value = l.desc || '';
         const urlInput = document.getElementById('in-url');
         const prevImg = document.getElementById('prev-img');
         urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
