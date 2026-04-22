@@ -1,13 +1,24 @@
 export async function onRequest(context) {
   const { request, env } = context;
-  const { password, link, action, oldCategory, newCategory } = await request.json().catch(() => ({}));
+  const { password, link, action, oldCategory, newCategory, order } = await request.json().catch(() => ({}));
 
+  // 获取所有数据（包含链接和排序配置）
   if (request.method === 'GET') {
     const links = await env.LINKS_KV.get('all_links');
-    return new Response(links || '[]', { headers: { 'Content-Type': 'application/json' } });
+    const catOrder = await env.LINKS_KV.get('category_order');
+    return new Response(JSON.stringify({
+      links: JSON.parse(links || '[]'),
+      order: JSON.parse(catOrder || '[]')
+    }), { headers: { 'Content-Type': 'application/json' } });
   }
 
   if (password !== env.EDIT_PASSWORD) return new Response('Unauthorized', { status: 401 });
+
+  // 处理排序更新
+  if (action === 'updateOrder') {
+    await env.LINKS_KV.put('category_order', JSON.stringify(order));
+    return new Response('OK', { status: 200 });
+  }
 
   let links = JSON.parse(await env.LINKS_KV.get('all_links') || '[]');
 
