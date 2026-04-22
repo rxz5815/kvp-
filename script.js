@@ -210,6 +210,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('modal-link').style.display = 'flex';
         document.getElementById('in-cat').value = l.category || '';
         document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
+        
+        document.getElementById('in-desc').value = l.desc || ''; // 这是新增的内容
         const urlInput = document.getElementById('in-url');
         const prevImg = document.getElementById('prev-img');
         urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
