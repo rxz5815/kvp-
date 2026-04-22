@@ -110,7 +110,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .cat-admin-row { display: flex; align-items: center; background: #222; padding: 12px; border-radius: 14px; margin-bottom: 12px; cursor: move; }
 
 /* --- 新增：修改三条杠颜色 --- */
-.drag-handle { color: #ccc; margin-right: 12px; cursor: grab; }
+.drag-handle { color: #555; margin-right: 12px; cursor: grab; }
 
 .cat-admin-row input { background: transparent !important; border: none !important; flex: 1; color: #fff; font-size: 16px; height: auto !important; padding: 0 !important; }
 .row-btns { display: flex; gap: 8px; margin-left: 10px; }
