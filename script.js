@@ -70,13 +70,38 @@ document.addEventListener('DOMContentLoaded', function() {
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
 
-        sortedCats.forEach(cat => {
+sortedCats.forEach(cat => {
             nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
             hint.innerHTML += `<option value="${cat}">${cat}</option>`;
             const sec = document.createElement('section');
             sec.id = cat;
             sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
             const grid = sec.querySelector('.link-grid');
+            
+            // --- 核心拖拽逻辑：确保 grid 始终监听事件 ---
+            grid.ondragover = e => { 
+                e.preventDefault(); 
+                grid.classList.add('drag-over'); // 鼠标移入，显示线条窗口
+            };
+            grid.ondragleave = () => {
+                grid.classList.remove('drag-over'); // 鼠标移出，隐藏线条窗口
+            };
+            grid.ondrop = async (e) => {
+                grid.classList.remove('drag-over'); // 放下后，隐藏线条窗口
+                const url = e.dataTransfer.getData('text/plain');
+                const item = allLinks.find(l => l.url === url);
+                if(item && item.category !== cat) {
+                    item.category = cat; 
+                    await apiReq('save', { link: item }); // 保存到后端
+                }
+            };
+
+            // 渲染该分类下的已有卡片
+            (grouped[cat] || []).forEach(l => {
+                grid.appendChild(createCard(l));
+            });
+            main.appendChild(sec);
+        });
             
             // 绑定拖拽
             grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
@@ -98,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 创建站点卡片
 function createCard(l) {
         const card = document.createElement('div');
-        card.className = 'link-card'; card.draggable = true;
+        card。className = 'link-card'; card.draggable = true;
         if (l.desc) card.setAttribute('data-desc', l.desc); // 这是新增的内容
         card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
         card.onclick = () => window.open(l.url, '_blank');
