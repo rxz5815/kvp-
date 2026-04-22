@@ -5,10 +5,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 预设渐变色
     const grads = [
-        'linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d)',
-        'linear-gradient(135deg, #134e5e, #71b280)',
-        'linear-gradient(135deg, #202124, #3c4043)',
-        'linear-gradient(135deg, #0f0c29, #302b63, #24243e)'
+        'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)', // 默认渐变蓝
+        'linear-gradient(135deg, #134e5e 0%, #71b280 100%)', // 渐变绿
+        'linear-gradient(135deg, #202124 0%, #3c4043 100%)', // 渐变灰
+        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'  // 渐变紫
     ];
 
     // 更新背景逻辑
