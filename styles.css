@@ -130,27 +130,31 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .side-btn:hover { background: var(--red); transform: translateY(-3px); }
 
 
-/* 自定义简介气泡：零延迟显示 */
-.link-card {
-    position: relative; /* 确保气泡定位在卡片周围 */
-}
-
+/* 自定义简介气泡：支持自动换行 */
 .link-card[data-desc]::after {
-    content: attr(data-desc); /* 读取简介文字 */
+    content: attr(data-desc);
     position: absolute;
-    bottom: -35px;           /* 显示在卡片下方 */
+    top: 100%;              /* 改为从卡片底部开始计算 */
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8); /* 黑色半透明背景 */
+    margin-top: 10px;       /* 与卡片保持 10px 间距 */
+    background: rgba(0, 0, 0, 0.9); /* 稍微加深背景 */
     color: #fff;
-    padding: 5px 10px;
-    border-radius: 6px;
+    padding: 8px 12px;      /* 增加内边距，更有呼吸感 */
+    border-radius: 8px;
     font-size: 12px;
-    white-space: nowrap;    /* 文字不换行 */
     z-index: 1000;
-    opacity: 0;             /* 默认隐藏 */
-    pointer-events: none;   /* 防止遮挡鼠标点击 */
-    transition: opacity 0.1s; /* 极快的淡入，几乎瞬显 */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+
+    /* --- 核心修复：换行逻辑 --- */
+    width: 200px;           /* 设置一个固定宽度，超过就换行 */
+    white-space: normal;    /* 允许文字自然换行 */
+    word-wrap: break-word;  /* 强制长单词/无空格字符换行 */
+    line-height: 1.5;       /* 增加行高，多行时阅读更舒适 */
+    text-align: center;     /* 文字居中对齐 */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* 增加阴影，更有立体感 */
 }
 
 /* 鼠标移入时立刻显示 */
