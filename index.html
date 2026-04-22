@@ -103,20 +103,6 @@
       </div>
     </div>
   </div>
-
-<!-- ... 找到编辑站点弹窗 (modal-link) ... -->
-<!-- 在“站点标题”输入框下面，增加下面这一行描述输入框 -->
-<input type="text" name="desc" id="in-desc" placeholder="站点描述（鼠标悬停显示）" class="full-width-input">
-
-<!-- ... 找到分类管理弹窗 (modal-cat) ... -->
-<!-- 在 <div id="cat-list-box" ...> 后面增加下面这段工具栏 -->
-<div class="cat-tools">
-    <button class="btn-mini blue" onclick="checkDeadLinks()">死链检测</button>
-    <button class="btn-mini" onclick="exportData()">导出备份</button>
-    <button class="btn-mini" onclick="document.getElementById('upload-input').click()">导入数据</button>
-    <input type="file" id="upload-input" style="display:none" onchange="importData(this)">
-</div>
-  
   
   <script src="script.js"></script>
 </body>
