@@ -14,12 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const bg = document.getElementById('bg-canvas');
         if(val.startsWith('http')) bg.style.backgroundImage = `url(${val})`;
         else bg.style.background = val;
-        if(save) localStorage.setItem('nav_bg_v14', val);
+        if(save) localStorage.setItem('nav_bg_v15', val);
     };
-    updateBg(localStorage.getItem('nav_bg_v14') || grads[0]);
+    updateBg(localStorage.getItem('nav_bg_v15') || grads[0]);
 
     document.getElementById('btn-toggle-bg').onclick = () => {
-        let curr = localStorage.getItem('nav_bg_v14');
+        let curr = localStorage.getItem('nav_bg_v15');
         let nextIdx = (grads.indexOf(curr) + 1) % grads.length;
         updateBg(grads[nextIdx]);
     };
@@ -64,15 +64,25 @@ document.addEventListener('DOMContentLoaded', function() {
             sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
             const grid = sec.querySelector('.link-grid');
             
+            // 绑定跨分类拖拽
+            grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
+            grid.ondragleave = () => grid.classList.remove('drag-over');
+            grid.ondrop = async (e) => {
+                grid.classList.remove('drag-over');
+                const url = e.dataTransfer.getData('text/plain');
+                const item = allLinks.find(l => l.url === url);
+                if(item && item.category !== cat) {
+                    item.category = cat; await apiReq('save', { link: item });
+                }
+            };
+
             (grouped[cat] || []).forEach(l => {
-                const card = createCard(l);
-                grid.appendChild(card);
+                grid.appendChild(createCard(l));
             });
             main.appendChild(sec);
         });
     }
 
-    // 通用卡片创建函数
     function createCard(l) {
         const card = document.createElement('div');
         card.className = 'link-card'; card.draggable = true;
@@ -83,13 +93,23 @@ document.addEventListener('DOMContentLoaded', function() {
         return card;
     }
 
-    // --- 搜索逻辑改进：弹窗内直接显示结果 ---
+    // --- 搜索逻辑彻底分化 ---
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
         const inp = box.querySelector('.search-input');
-        const engines = box.querySelector('.search-engines');
         const isModal = boxSel.includes('modal');
-        const modalGrid = document.getElementById('modal-results-area');
+        const resultsArea = document.getElementById('modal-results-area');
+        
+        box.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+            box.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+            t.classList.add('active');
+            inp.value = "";
+            if(isModal) resultsArea.innerHTML = '';
+            else {
+                document.body.classList.remove('is-searching');
+                document.querySelectorAll('.link-card, section').forEach(el => el.style.display = '');
+            }
+        });
 
         inp.addEventListener('input', function() {
             const q = this.value.trim().toLowerCase();
@@ -97,18 +117,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if(isInt) {
                 if(isModal) {
-                    // 弹窗搜索：直接在标红区渲染
-                    modalGrid.innerHTML = '';
+                    resultsArea.innerHTML = '';
                     if(q.length > 0) {
                         const matches = allLinks.filter(l => l.title !== 'placeholder_hidden' && l.title.toLowerCase().includes(q));
-                        matches.forEach(l => modalGrid.appendChild(createCard(l)));
+                        matches.forEach(l => resultsArea.appendChild(createCard(l)));
                     }
                 } else {
-                    // 主页搜索：原来的逻辑
                     if(q.length > 0) {
                         document.body.classList.add('is-searching');
                         document.querySelectorAll('.link-card').forEach(c => {
-                            c.style.display = c.innerText.toLowerCase().includes(q) ? 'block' : 'none';
+                            const txt = c.querySelector('h3').innerText.toLowerCase();
+                            c.style.display = txt.includes(q) ? 'block' : 'none';
                         });
                         document.querySelectorAll('section').forEach(sec => {
                             const has = Array.from(sec.querySelectorAll('.link-card')).some(c => c.style.display !== 'none');
@@ -141,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.modal-overlay').forEach(el => el.onclick = () => {
         document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-        document.getElementById('modal-results-area').innerHTML = ''; // 清空结果
+        document.getElementById('modal-results-area').innerHTML = '';
     });
 
     window.openEdit = (l = {}) => {
@@ -187,13 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sortedCats.forEach((c, idx) => {
             const row = document.createElement('div');
             row.className = 'cat-admin-row'; row.draggable = true;
-            row.innerHTML = `
-                <i class="fas fa-bars drag-handle"></i>
-                <input type="text" value="${c}">
-                <div class="row-btns">
-                    <button class="btn-mini blue" onclick="renameCat('${c}', this)">改名</button>
-                    <button class="btn-mini red" onclick="deleteCat('${c}')">删除</button>
-                </div>`;
+            row.innerHTML = `<i class="fas fa-bars drag-handle"></i><input type="text" value="${c}"><div class="row-btns"><button class="btn-mini blue" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div>`;
             row.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
             row.ondragend = () => row.style.opacity = '1';
             row.ondragover = e => e.preventDefault();
