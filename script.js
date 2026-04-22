@@ -96,9 +96,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 创建站点卡片
-    function createCard(l) {
+function createCard(l) {
         const card = document.createElement('div');
         card.className = 'link-card'; card.draggable = true;
+        if (l.desc) card.title = l.desc; // 这是新增的内容
         card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
         card.onclick = () => window.open(l.url, '_blank');
         card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
