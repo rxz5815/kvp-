@@ -48,7 +48,26 @@ header h1 { text-align: center; font-weight: 300; font-size: 40px; color: #fffff
 /* 站点展示 */
 section { margin-top: 80px; }
 .category-title { border-left: 4px solid var(--red); padding-left: 12px; margin-bottom: 30px; font-weight: 500; font-size: 22px; }
-.link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 20px; }
+
+/* --- 找到 .link-grid 替换为以下内容 --- */
+.link-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); 
+    gap: 20px; 
+    /* 关键点：给空分类一个保底高度(约一个图标高度)，确保能拖进去 */
+    min-height: 100px; 
+    padding: 15px; 
+    border-radius: 18px;
+    border: 2px dashed transparent; /* 预留边框位置，防止抖动 */
+    transition: all 0.3s ease;
+}
+
+/* 当书签拖拽到分类上方时，出现的线条窗口效果 */
+.link-grid.drag-over { 
+    background: rgba(79, 172, 254, 0.05); /* 淡淡的蓝色背景 */
+    border-color: var(--blue);            /* 亮蓝色虚线边框 */
+    transform: scale(1.01);               /* 稍微放大一点点，增加动感 */
+}
 
 /* 站内搜索模式样式 */
 body.is-searching .category-title, body.is-searching #sticky-nav { display: none !important; }
