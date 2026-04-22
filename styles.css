@@ -99,7 +99,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 
 /* 搜索结果 */
 .search-modal-container { max-width: 600px; display: flex; flex-direction: column; max-height: 85vh; }
-#modal-results-area { flex: 1; overflow-y: auto; margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; min-height: 50px; }
+#modal-results-area { flex: 1; overflow-y: auto; margin-top: 20px; padding-top: 15px; }
 
 /* 保存按钮 */
 .save-btn-new { width: 100% !important; height: 52px !important; background: #333 !important; border: none !important; color: #fff !important; border-radius: 14px !important; font-weight: bold !important; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
