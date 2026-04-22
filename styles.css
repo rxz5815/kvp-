@@ -11,7 +11,7 @@ body { font-family: 'PingFang SC', system-ui, sans-serif; color: #fff; backgroun
 .wrapper { max-width: 1100px; margin: 0 auto; padding: 20px; }
 
 /* 头部 */
-header h1 { text-align: center; font-weight: 300; font-size: 40px; color: #4facfe; margin: 40px 0 30px; }
+header h1 { text-align: center; font-weight: 300; font-size: 40px; color: #ffffff; margin: 40px 0 30px; }
 .logo-link { text-decoration: none; display: block; }
 
 /* 搜索 */
