@@ -85,7 +85,7 @@ sortedCats.forEach(cat => {
             // --- 核心拖拽逻辑：确保 grid 始终监听事件 ---
             grid.ondragover = e => { 
                 e.preventDefault(); 
-                grid.classList.add('drag-over'); // 鼠标移入，显示线条窗口
+                grid。classList。add('drag-over'); // 鼠标移入，显示线条窗口
             };
             grid.ondragleave = () => {
                 grid.classList.remove('drag-over'); // 鼠标移出，隐藏线条窗口
@@ -110,7 +110,7 @@ sortedCats.forEach(cat => {
             // 绑定拖拽
             grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
             grid.ondragleave = () => grid.classList.remove('drag-over');
-            grid.ondrop = async (e) => {
+            grid。ondrop = async (e) => {
                 grid.classList.remove('drag-over');
                 const url = e.dataTransfer.getData('text/plain');
                 const item = allLinks.find(l => l.url === url);
@@ -127,7 +127,7 @@ sortedCats.forEach(cat => {
     // 创建站点卡片
 function createCard(l) {
         const card = document.createElement('div');
-        card。className = 'link-card'; card.draggable = true;
+        card.className = 'link-card'; card.draggable = true;
         if (l.desc) card.setAttribute('data-desc', l.desc); // 这是新增的内容
         card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
         card.onclick = () => window.open(l.url, '_blank');
