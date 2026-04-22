@@ -41,7 +41,7 @@
     <button class="side-btn" id="btn-cat-admin"><i class="fas fa-folder"></i></button>
   </div>
 
-  <!-- 搜索弹窗（改进版） -->
+  <!-- 搜索弹窗 -->
   <div class="modal" id="modal-search">
     <div class="modal-overlay"></div>
     <div class="modal-body search-modal-container">
@@ -60,8 +60,8 @@
           <span class="engine" data-url="https://www.bing.com/search?q=">Bing</span>
         </div>
       </div>
-      <!-- 图 13 要求的标红展示区 -->
-      <div id="modal-results-area" class="link-grid mt-20"></div>
+      <!-- 弹窗内搜索结果区 -->
+      <div id="modal-results-area" class="link-grid"></div>
     </div>
   </div>
 
@@ -69,15 +69,15 @@
   <div class="modal" id="modal-link">
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
-      <h3>编辑站点</h3>
+      <h3 class="modal-title-center">编辑站点</h3>
       <form id="link-form">
-        <input type="password" name="password" id="main-pwd" placeholder="管理密码" class="full-width">
-        <div class="modal-row align-fix">
+        <input type="password" name="password" id="main-pwd" placeholder="管理密码" class="full-width-input">
+        <div class="modal-row custom-row-align">
             <input type="text" name="category" id="in-cat" placeholder="分类名称" required>
             <select id="cat-hint"></select>
         </div>
-        <input type="text" name="title" id="in-title" placeholder="站点标题" class="full-width" required>
-        <div class="modal-row">
+        <input type="text" name="title" id="in-title" placeholder="站点标题" class="full-width-input" required>
+        <div class="modal-row custom-row-align">
             <input type="url" name="url" id="in-url" placeholder="https://..." required>
             <div class="icon-preview-box"><img id="prev-img" src=""></div>
         </div>
@@ -90,7 +90,7 @@
   <div class="modal" id="modal-cat">
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
-      <h3>分类管理 (拖拽排序)</h3>
+      <h3 class="modal-title-center">分类管理 (拖拽排序)</h3>
       <div id="cat-list-box" class="scroll-area"></div>
       <div class="add-cat-area">
           <input type="text" id="new-cat-input" placeholder="新分类名称">
