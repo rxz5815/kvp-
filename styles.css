@@ -30,7 +30,17 @@ header h1 { text-align: center; font-weight: 300; font-size: 40px; color: #4facf
 .engine.active { opacity: 1; font-weight: bold; background: rgba(255,255,255,0.1); }
 
 /* 导航分类 Hover */
-#sticky-nav { position: sticky; top: 10px; z-index: 100; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(20px); border-radius: 12px; margin: 40px 0; border: 1px solid rgba(255,255,255,0.05); }
+#sticky-nav { 
+    position: sticky; 
+    top: 10px; 
+    z-index: 100; 
+    background: rgba(15, 15, 15, 0.75); 
+    backdrop-filter: blur(20px); 
+    border-radius: 12px; 
+    margin: 40px 0; 
+    border: 1px solid rgba(255,255,255,0.05); 
+}
+
 #category-ul { display: flex; justify-content: center; list-style: none; padding: 10px; flex-wrap: wrap; gap: 10px; }
 #category-ul a { color: #ccc !important; text-decoration: none; font-size: 16px; padding: 6px 12px; border-radius: 8px; transition: all 0.3s ease; display: inline-block; }
 #category-ul a:hover { color: #fff !important; background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
@@ -57,7 +67,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .modal-body { background: #1a1a1a; padding: 35px; border-radius: 24px; width: 90%; max-width: 440px; border: 1px solid #333; position: relative; z-index: 10; box-shadow: var(--shadow); }
 .modal-title-center { text-align: center !important; margin-bottom: 30px; font-weight: 500; font-size: 20px; display: block; width: 100%; }
 
-/* --- 像素级对齐编辑站点 (图 20 & 24) --- */
+/* 编辑站点对齐 */
 .modal-row { display: flex !important; gap: 12px !important; margin-bottom: 15px !important; width: 100% !important; align-items: stretch !important; }
 .modern-modal input, .modern-modal select { 
     height: 50px !important; 
@@ -70,12 +80,11 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     outline: none !important; 
     box-sizing: border-box !important;
 }
-/* 解决下拉框对齐问题 */
 #cat-hint { 
     width: 140px !important; 
     flex: none !important; 
     cursor: pointer;
-    appearance: none; /* 移除系统原生样式 */
+    appearance: none; 
     background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
@@ -88,25 +97,31 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .icon-preview-box img { width: 28px; height: 28px; object-fit: contain; display: none; }
 .icon-preview-box img.loaded { display: block !important; }
 
-/* 搜索弹窗结果 */
+/* 搜索结果 */
 .search-modal-container { max-width: 600px; display: flex; flex-direction: column; max-height: 85vh; }
 #modal-results-area { flex: 1; overflow-y: auto; margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; min-height: 50px; }
 
-/* 保存按钮交互 */
+/* 保存按钮 */
 .save-btn-new { width: 100% !important; height: 52px !important; background: #333 !important; border: none !important; color: #fff !important; border-radius: 14px !important; font-weight: bold !important; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
 .save-btn-new:hover { background: var(--red) !important; transform: translateY(-4px); font-weight: 900; box-shadow: 0 5px 15px rgba(255, 77, 79, 0.4); }
 
-/* 分类管理滚轮 */
+/* 分类管理 */
 .scroll-area { max-height: 50vh; overflow-y: auto; padding-right: 5px; }
-.cat-admin-row { display: flex; align-items: center; background: #222; padding: 12px; border-radius: 14px; margin-bottom: 12px; }
+.cat-admin-row { display: flex; align-items: center; background: #222; padding: 12px; border-radius: 14px; margin-bottom: 12px; cursor: move; }
+
+/* --- 新增：修改三条杠颜色 --- */
+.drag-handle { color: #ccc; margin-right: 12px; cursor: grab; }
+
 .cat-admin-row input { background: transparent !important; border: none !important; flex: 1; color: #fff; font-size: 16px; height: auto !important; padding: 0 !important; }
 .row-btns { display: flex; gap: 8px; margin-left: 10px; }
 .btn-mini { padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; color: #fff; background: #444; }
 .btn-mini.blue:hover { background: var(--blue); }
 .btn-mini.red:hover { background: var(--red); }
 
-.add-cat-area { display: flex; gap: 10px; padding-top: 20px; border-top: 1px solid #333; margin-top: 10px; }
-.btn-add-cat { width: 90px; height: 45px; background: #333; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+/* --- 修改：自适应添加分类区域 --- */
+.add-cat-area { display: flex; gap: 10px; padding-top: 20px; border-top: 1px solid #333; margin-top: 10px; width: 100%; }
+.add-cat-area input { flex: 1; height: 45px !important; min-width: 0; }
+.btn-add-cat { width: 90px; height: 45px; background: #333; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; flex-shrink: 0; }
 .btn-add-cat:hover { background: var(--blue); }
 
 /* 侧边按钮 */
