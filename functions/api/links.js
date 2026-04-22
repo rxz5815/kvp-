@@ -2,7 +2,6 @@ export async function onRequest(context) {
   const { request, env } = context;
   const { password, link, action, oldCategory, newCategory, order } = await request.json().catch(() => ({}));
 
-  // 获取所有数据（包含链接和排序配置）
   if (request.method === 'GET') {
     const links = await env.LINKS_KV.get('all_links');
     const catOrder = await env.LINKS_KV.get('category_order');
