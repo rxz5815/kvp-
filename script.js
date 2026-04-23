@@ -84,8 +84,8 @@ async function fetchData() {
             
             // --- 只保留这一段即可，下面这一段是完全正确的 ---
             grid.ondragover = function(e) {
-                e。preventDefault();
-                grid。classList.add('drag-over'); // 移入时显示虚线框
+                e.preventDefault();
+                grid.classList.add('drag-over'); // 移入时显示虚线框
             };
             grid.ondragleave = function() {
                 grid.classList.remove('drag-over'); // 移出时隐藏
