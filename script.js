@@ -113,7 +113,7 @@ async function fetchData() {
                 grid.classList.add('drag-over'); // 移入时显示虚线框
 
             };
-            grid。ondragleave = function() {
+            grid.ondragleave = function() {
                 grid.classList.remove('drag-over'); // 移出时隐藏
             };
             grid.ondrop = async function(e) {
