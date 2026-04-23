@@ -52,7 +52,7 @@ section { margin-top: 20px; }
 /* 线条窗口容器基础样式 */
 .link-grid { 
     display: grid; 
-    grid-template-columns: repeat(auto-fill， minmax(110px， 1fr)); 
+    grid-template-columns: repeat(auto-fill， minmax(115px， 1fr)); 
     gap: 20px; 
     /* --- 核心修改 --- */
     min-height: 80px;            /* 必须：给空分类一个保底高度，否则鼠标移不上去 */
