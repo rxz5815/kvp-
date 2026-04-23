@@ -210,7 +210,7 @@ function createCard(l) {
     // 引擎切换
     document.body.addEventListener('click', e => {
         if(e.target.classList.contains('engine')) {
-            document.querySelectorAll('.engine').forEach(x => x.classList.remove('active'));
+            document。querySelectorAll('.engine').forEach(x => x.classList.remove('active'));
             e.target.classList.add('active');
             currentEngine = e.target.dataset.url;
         }
@@ -223,22 +223,34 @@ function createCard(l) {
     });
 
     // 编辑站点
-    window.openEdit = (l = {}) => {
+window.openEdit = (l = {}) => {
         document.getElementById('modal-link').style.display = 'flex';
-        document.getElementById('in-cat').value = l.category || '';
+        
+        // 1. 填充标题 (现在它在第一行左侧)
         document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
         
-        document.getElementById('in-desc').value = l.desc || ''; // 这是新增的内容
+        // 2. 填充分类下拉框 (现在它在第一行右侧)
+        document.getElementById('cat-hint').value = l.category || '';
+        
+        // 3. 填充描述
+        document.getElementById('in-desc').value = l.desc || '';
+        
+        // 4. 填充网址
         const urlInput = document.getElementById('in-url');
         const prevImg = document.getElementById('prev-img');
         urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
+        
+        // 5. 填充图标预览
         if (l.icon && l.icon !== '') {
-            prevImg.src = l.icon; prevImg.classList.add('loaded');
+            prevImg.src = l.icon; 
+            prevImg.classList.add('loaded');
         } else {
-            prevImg.src = ''; prevImg.classList.remove('loaded');
+            prevImg.src = ''; 
+            prevImg.classList.remove('loaded');
         }
     };
 
+    
     // 图标抓取
     document.getElementById('in-url').oninput = function() {
         const val = this.value.trim();
