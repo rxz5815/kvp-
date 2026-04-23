@@ -261,7 +261,7 @@ function createCard(l) {
             const tempImg = new Image();
             tempImg.src = iconUrl;
             tempImg.onload = () => { prevImg.src = iconUrl; prevImg.classList.add('loaded'); };
-            tempImg。onerror = () => { prevImg.src = ''; prevImg.classList.remove('loaded'); };
+            tempImg.onerror = () => { prevImg.src = ''; prevImg.classList.remove('loaded'); };
         } catch (e) { prevImg.classList.remove('loaded'); }
     };
 
@@ -274,7 +274,7 @@ function createCard(l) {
     function renderCatAdmin() {
         const box = document.getElementById('cat-list-box');
         box.innerHTML = '';
-        const cats = [...new Set(allLinks。map(l => l.category))];
+        const cats = [...new Set(allLinks.map(l => l.category))];
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
 
