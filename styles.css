@@ -78,12 +78,8 @@ section { margin-top: 80px; }
 }
 
 /* 确保卡片内部图标大小回归原始 */
-.link-card img {
-    width: 40px; 
-    height: 40px;
-    display: block;
-    margin: 0 auto 10px;
-}
+.link-card img { width: 40px; height: 40px; border-radius: 10px; margin-bottom: 10px; }
+
 /* 当书签被拖拽到分类上方时触发的样式 */
 .link-grid.drag-over { 
     background: rgba(79, 172, 254, 0.08) !important; /* 淡淡的背景色 */
