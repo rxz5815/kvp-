@@ -81,6 +81,32 @@ async function fetchData() {
             sec.id = cat;
             sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
             const grid = sec.querySelector('.link-grid');
+            // --- 找到 render 函数中创建 grid 后的位置 ---
+const grid = sec.querySelector('.link-grid');
+
+// 1. 当拖拽悬停在分类容器上方时
+grid.ondragover = function(e) {
+    e.preventDefault();              /* 必须：允许放置 */
+    grid.classList.add('drag-over');  /* 开启线条窗口 */
+};
+
+// 2. 当拖拽离开分类容器时
+grid.ondragleave = function() {
+    grid.classList.remove('drag-over'); /* 关闭线条窗口 */
+};
+
+// 3. 当书签被放下（松开鼠标）时
+grid.ondrop = async function(e) {
+    grid.classList.remove('drag-over'); /* 关闭线条窗口 */
+    const url = e.dataTransfer.getData('text/plain');
+    const item = allLinks.find(l => l.url === url);
+    
+    // 如果拖拽的站点确实换了分类，则保存
+    if(item && item.category !== cat) {
+        item.category = cat;
+        await apiReq('save', { link: item }); /* 调用 API 保存到 KV */
+    }
+};
             
             // 绑定拖拽
             grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
