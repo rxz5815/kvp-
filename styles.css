@@ -5,6 +5,10 @@
   --shadow: 0 12px 40px rgba(0,0,0,0.6); 
 }
 
+html {
+    scroll-behavior: smooth; /* 全局开启丝滑滚动 */
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'PingFang SC', system-ui, sans-serif; color: #fff; background: #0a0a0a; min-height: 100vh; overflow-x: hidden; }
 #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-size: cover; background-position: center; transition: 1s ease; }
@@ -46,7 +50,12 @@ header h1 { text-align: center; font-weight: 300; font-size: 40px; color: #fffff
 #category-ul a:hover { color: #fff !important; background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
 /* 站点展示 */
-section { margin-top: 50px; } /* 分类间距调整 */
+/* --- 找到 section 样式并添加 scroll-margin-top --- */
+section { 
+    margin-top: 80px; 
+    scroll-margin-top: 100px;    
+    transition: 0.3s; 
+}
 .category-title { border-left: 4px solid var(--red); padding-left: 12px; margin-bottom: 20px; font-weight: 500; font-size: 22px; }
 
 /* 图标容器基础样式 */
