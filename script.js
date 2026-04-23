@@ -74,32 +74,32 @@ async function fetchData() {
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
 
-        sortedCats.forEach(cat => {
+sortedCats.forEach(cat => {
             nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
             hint.innerHTML += `<option value="${cat}">${cat}</option>`;
             const sec = document.createElement('section');
             sec.id = cat;
             sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
+            
+            // ！！这里确保只保留一个！！
             const grid = sec.querySelector('.link-grid');
             
-            // --- 只保留这一段即可，下面这一段是完全正确的 ---
-            grid.ondragover = function(e) {
-                e.preventDefault();
-                grid.classList.add('drag-over'); // 移入时显示虚线框
-
-            };
-            grid.ondragleave = function() {
-                grid.classList.remove('drag-over'); // 移出时隐藏
-            };
-            grid.ondrop = async function(e) {
-                grid.classList.remove('drag-over'); // 放下时隐藏
+            // 绑定拖拽逻辑 (确保使用的是英文点号 .)
+            grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
+            grid.ondragleave = () => grid.classList.remove('drag-over');
+            grid.ondrop = async (e) => {
+                grid.classList.remove('drag-over');
                 const url = e.dataTransfer.getData('text/plain');
                 const item = allLinks.find(l => l.url === url);
                 if(item && item.category !== cat) {
-                    item.category = cat;
+                    item.category = cat; 
                     await apiReq('save', { link: item });
                 }
             };
+
+            (grouped[cat] || []).forEach(l => { grid.appendChild(createCard(l)); });
+            main.appendChild(sec);
+        });
             // --- 拖拽逻辑结束 ---
 
             // 下面是渲染卡片的逻辑，不要删
@@ -223,19 +223,24 @@ function createCard(l) {
     });
 
     // 编辑站点
-    window.openEdit = (l = {}) => {
+window.openEdit = (l = {}) => {
         document.getElementById('modal-link').style.display = 'flex';
-        document.getElementById('in-cat').value = l.category || '';
-        document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
         
-        document.getElementById('in-desc').value = l.desc || ''; // 这是新增的内容
+        // 核心修复：将数据填入新的 3 行结构 ID 中
+        document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
+        document.getElementById('cat-hint').value = l.category || ''; // 直接填入下拉框
+        document.getElementById('in-desc').value = l.desc || '';
+        
         const urlInput = document.getElementById('in-url');
         const prevImg = document.getElementById('prev-img');
         urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
+        
         if (l.icon && l.icon !== '') {
-            prevImg.src = l.icon; prevImg.classList.add('loaded');
+            prevImg.src = l.icon; 
+            prevImg.classList.add('loaded');
         } else {
-            prevImg.src = ''; prevImg.classList.remove('loaded');
+            prevImg.src = ''; 
+            prevImg.classList.remove('loaded');
         }
     };
 
