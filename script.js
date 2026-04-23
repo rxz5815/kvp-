@@ -210,7 +210,7 @@ function createCard(l) {
     // 引擎切换
     document.body.addEventListener('click', e => {
         if(e.target.classList.contains('engine')) {
-            document。querySelectorAll('.engine').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.engine').forEach(x => x.classList.remove('active'));
             e.target.classList.add('active');
             currentEngine = e.target.dataset.url;
         }
@@ -223,7 +223,7 @@ function createCard(l) {
     });
 
     // 编辑站点
-window。openEdit = (l = {}) => {
+window.openEdit = (l = {}) => {
         document.getElementById('modal-link').style.display = 'flex';
         
         // 1. 站点标题 (现在它在第一行左侧)
