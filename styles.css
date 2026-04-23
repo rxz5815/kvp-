@@ -223,3 +223,45 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .link-card[data-desc=""]::after {
     display: none;
 }
+
+
+/* 确保“编辑站点”标题居中 */
+.modern-modal h3.modal-title-center { 
+    text-align: center !important; 
+    margin-bottom: 25px !important; 
+    display: block;
+}
+
+/* 核心对齐：第一行和第三行的容器 */
+.modal-row.custom-row-align {
+    display: flex !important;
+    gap: 12px !important;
+    margin-bottom: 15px !important;
+    align-items: stretch !important;
+}
+
+/* 标题框和网址框：自动拉伸填满左侧 */
+#in-title, #in-url {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+/* 选择分类下拉框：固定宽度，与下方图标预览框对齐 */
+#cat-hint {
+    width: 140px !important; 
+    flex: none !important;
+    cursor: pointer;
+}
+
+/* 图标预览框：固定宽度 */
+.icon-preview-box {
+    width: 50px !important;
+    height: 50px !important;
+    flex: none !important;
+}
+
+/* 描述框：强制 100% 满宽 */
+.full-width-input {
+    width: 100% !important;
+    margin-bottom: 15px !important;
+}
