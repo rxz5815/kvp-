@@ -238,30 +238,26 @@ function createCard(l) {
     });
 
     // 编辑站点
-window.openEdit = (l = {}) => {
+window。openEdit = (l = {}) => {
         document.getElementById('modal-link').style.display = 'flex';
         
-        // 1. 站点标题 (现在它在第一行左侧)
+        // 抓取并填充内容
         document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
-        
-        // 2. 选择分类 (现在它在第一行右侧)
         document.getElementById('cat-hint').value = l.category || '';
-        
-        // 3. 站点描述 (第二行)
         document.getElementById('in-desc').value = l.desc || '';
         
-        // 4. 网址与预览 (第三行)
         const urlInput = document.getElementById('in-url');
         const prevImg = document.getElementById('prev-img');
         urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
         
         if (l.icon && l.icon !== '') {
-            prevImg.src = l.icon; prevImg.classList.add('loaded');
+            prevImg.src = l.icon; 
+            prevImg.classList.add('loaded');
         } else {
-            prevImg.src = ''; prevImg.classList.remove('loaded');
+            prevImg.src = ''; 
+            prevImg.classList.remove('loaded');
         }
     };
-
     
     // 图标抓取
     document.getElementById('in-url').oninput = function() {
