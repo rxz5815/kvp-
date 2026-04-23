@@ -53,14 +53,37 @@ section { margin-top: 80px; }
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); 
     gap: 20px; 
-    /* --- 核心修改 --- */
-    min-height: 80px;            /* 必须：给空分类一个保底高度，否则鼠标移不上去 */
-    padding: 15px;               /* 增加内边距，让容器更像一个“盒子” */
+    
+    /* 核心修复 A：保留保底高度解决 🚫 问题 */
+    min-height: 110px; 
+    
+    /* 核心修复 B：微调内边距，并用负边距抵消偏移，实现垂直对齐 */
+    padding: 8px; 
+    margin-left: -8px;  /* 抵消内边距，让图标和标题重新对齐 */
+    margin-right: -8px; 
+    
     border-radius: 18px;
-    border: 2px dashed transparent; /* 预留一个透明的虚线边框，防止抖动 */
-    transition: all 0.2s ease;
+    
+    /* 核心修复 C：预留边框位置，设为透明，防止虚线显示时图标闪动或移位 */
+    border: 2px dashed transparent; 
+    
+    transition: background 0.2s, border-color 0.2s; /* 仅过渡颜色，不影响大小 */
 }
 
+/* 拖拽悬停：仅变色，不缩放 */
+.link-grid.drag-over { 
+    background: rgba(79, 172, 254, 0.05) !important; 
+    border-color: var(--blue) !important; 
+    /* 取消了 transform: scale，确保图标不变大 */
+}
+
+/* 确保卡片内部图标大小回归原始 */
+.link-card img {
+    width: 40px; 
+    height: 40px;
+    display: block;
+    margin: 0 auto 10px;
+}
 /* 当书签被拖拽到分类上方时触发的样式 */
 .link-grid.drag-over { 
     background: rgba(79, 172, 254, 0.08) !important; /* 淡淡的背景色 */
