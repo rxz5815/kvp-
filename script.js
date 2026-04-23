@@ -263,7 +263,7 @@ function createCard(l) {
     function renderCatAdmin() {
         const box = document.getElementById('cat-list-box');
         box.innerHTML = '';
-        const cats = [...new Set(allLinks。map(l => l.category))];
+        const cats = [...new Set(allLinks.map(l => l.category))];
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
 
