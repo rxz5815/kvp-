@@ -52,7 +52,7 @@ section { margin-top: 20px; }
 /* 图标容器基础样式 */
 .link-grid {
     display: grid !important; /* 必须有这行，否则图标会 100% 宽度 */
-    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)) !important; /* 必须有这行，否则不会横向排开 */
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important; /* 必须有这行，否则不会横向排开 */
     gap: 20px;
     min-height: 110px;
     padding: 10px; 
