@@ -46,46 +46,10 @@ header h1 { text-align: center; font-weight: 300; font-size: 40px; color: #fffff
 #category-ul a:hover { color: #fff !important; background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
 /* 站点展示 */
-section { margin-top: 40px; }
-.category-title { border-left: 4px solid var(--red); padding-left: 12px; margin-bottom: 20px; font-weight: 500; font-size: 22px; }
-/* 线条窗口容器基础样式 */
-.link-grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
-    gap: 20px; 
-    
-    /* 核心修复 A：保留保底高度解决 🚫 问题 */
-    min-height: 110px; 
-    
-    /* 核心修复 B：微调内边距，并用负边距抵消偏移，实现垂直对齐 */
-    padding: 8px; 
-    margin-left: -8px;  /* 抵消内边距，让图标和标题重新对齐 */
-    margin-right: -8px; 
-    
-    border-radius: 18px;
-    
-    /* 核心修复 C：预留边框位置，设为透明，防止虚线显示时图标闪动或移位 */
-    border: 2px dashed transparent; 
-    
-    transition: background 0.2s, border-color 0.2s; /* 仅过渡颜色，不影响大小 */
-}
+section { margin-top: 80px; }
+.category-title { border-left: 4px solid var(--red); padding-left: 12px; margin-bottom: 30px; font-weight: 500; font-size: 22px; }
+.link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 20px; }
 
-/* 拖拽悬停：仅变色，不缩放 */
-.link-grid.drag-over { 
-    background: rgba(79, 172, 254, 0.05) !important; 
-    border-color: var(--blue) !important; 
-    /* 取消了 transform: scale，确保图标不变大 */
-}
-
-/* 确保卡片内部图标大小回归原始 */
-.link-card img { width: 40px; height: 40px; border-radius: 10px; margin-bottom: 10px; }
-
-/* 当书签被拖拽到分类上方时触发的样式 */
-.link-grid.drag-over { 
-    background: rgba(79, 172, 254, 0.08) !important; /* 淡淡的背景色 */
-    border-color: var(--blue) !important;            /* 亮蓝色虚线边框窗口 */
-    transform: scale(1.01);                          /* 稍微放大一点增加反馈感 */
-}
 /* 站内搜索模式样式 */
 body.is-searching .category-title, body.is-searching #sticky-nav { display: none !important; }
 
@@ -179,7 +143,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     left: 50%;
     transform: translateX(-50%);
     margin-top: 15px;       /* 与卡片保持 10px 间距 */
-    background: rgba(255, 255, 255, 0.85); /* 稍微加深背景 */
+    background: rgba(255, 255, 255, 0.75); /* 稍微加深背景 */
     color: #000000;
     padding: 8px 12px;      /* 增加内边距，更有呼吸感 */
     border-radius: 8px;
