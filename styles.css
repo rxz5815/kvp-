@@ -51,7 +51,7 @@ section { margin-top: 80px; }
 /* 线条窗口容器基础样式 */
 .link-grid { 
     display: grid; 
-    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); 
+    grid-template-columns: repeat(auto-fill, minmax(11px, 1fr)); 
     gap: 20px; 
     
     /* 核心修复 A：保留保底高度解决 🚫 问题 */
