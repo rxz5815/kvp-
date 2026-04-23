@@ -68,7 +68,7 @@ async function fetchData() {
             const targetElement = document.getElementById(targetId);
 
             if (targetElement) {
-                // 计算滚动位置：分类距离顶部的距离 - 100像素(给导航栏留出的空隙)
+                // 计算滚动位置：分类距离顶部的距离 - 120像素(给导航栏留出的空隙)
                 const offset = 120; 
                 const elementPosition = targetElement.getBoundingClientRect().top;
                 const offsetPosition = elementPosition + window.pageYOffset - offset;
