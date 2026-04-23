@@ -123,7 +123,21 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 
 /* 搜索结果 */
 .search-modal-container { max-width: 600px; display: flex; flex-direction: column; max-height: 85vh; }
-#modal-results-area { flex: 1; overflow-y: auto; margin-top: 1px; padding-top: 1px; }
+#modal-results-area {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 10px;
+  padding-top: 10px;
+
+  /* Firefox 美化 */
+  scrollbar-width: thin;
+  scrollbar-color: #999 transparent;
+}
+
+/* Chrome / Edge 美化（细、好看、不丑） */
+#modal-results-area::-webkit-scrollbar { width: 6px; }
+#modal-results-area::-webkit-scrollbar-track { background: transparent; }
+#modal-results-area::-webkit-scrollbar-thumb { background: #999; border-radius: 99px; }
 
 /* 保存按钮 */
 .save-btn-new { width: 100% !important; height: 52px !important; background: #333 !important; border: none !important; color: #fff !important; border-radius: 14px !important; font-weight: bold !important; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
