@@ -144,7 +144,21 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .save-btn-new:hover { background: var(--red) !important; transform: translateY(-4px); font-weight: 900; box-shadow: 0 5px 15px rgba(255, 77, 79, 0.4); }
 
 /* 分类管理 */
-.scroll-area { max-height: 50vh; overflow-y: auto; padding-right: 5px; }
+.scroll-area {
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 5px;
+
+  /* Firefox 美化 */
+  scrollbar-width: thin;
+  scrollbar-color: #999 transparent;
+}
+
+/* Chrome / Edge 美化（细、好看、不丑） */
+
+.scroll-area::-webkit-scrollbar { width: 6px; }
+.scroll-area::-webkit-scrollbar-track { background: transparent; }
+.scroll-area::-webkit-scrollbar-thumb { background: #999; border-radius: 99px; }
 .cat-admin-row { display: flex; align-items: center; background: #222; padding: 12px; border-radius: 14px; margin-bottom: 12px; cursor: move; }
 
 /* --- 新增：修改三条杠颜色 --- */
