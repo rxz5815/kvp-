@@ -84,7 +84,7 @@ async function fetchData() {
             sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
             const grid = sec.querySelector('.link-grid');
 
-            // --- 拖拽核心逻辑：开启线条窗口效果 ---
+             // --- 拖拽核心逻辑：开启线条窗口效果 ---
             grid.ondragover = function(e) {
                 e.preventDefault();
                 grid.classList.add('drag-over'); // 移入时显示虚线框
@@ -119,6 +119,7 @@ async function fetchData() {
             main.appendChild(sec);
         });
     }
+
 
     // 创建站点卡片
 function createCard(l) {
