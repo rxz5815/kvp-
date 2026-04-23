@@ -56,32 +56,7 @@ async function fetchData() {
         }
     }
     fetchData();
-
-    // --- 粘贴在这里：点击导航分类实现丝滑滚动 ---
-    document.getElementById('category-ul').addEventListener('click', function(e) {
-        // 检查点击的是不是链接 (<a> 标签)
-        if (e.target.tagName === 'A') {
-            e.preventDefault(); // 阻止默认的闪现跳转
-            
-            // 获取目标分类的 ID
-            const targetId = e.target.getAttribute('href').substring(1);
-            const targetElement = document.getElementById(targetId);
-
-            if (targetElement) {
-                // 计算滚动位置：分类距离顶部的距离 - 120像素(给导航栏留出的空隙)
-                const offset = 120; 
-                const elementPosition = targetElement.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-                // 执行平滑滚动动画
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: "smooth" 
-                });
-            }
-        }
-    });
-
+    
     // 页面渲染
     function render() {
         const main = document.getElementById('main-content');
@@ -109,7 +84,7 @@ async function fetchData() {
             
             // --- 只保留这一段即可，下面这一段是完全正确的 ---
             grid.ondragover = function(e) {
-                e.preventDefault();
+                e。preventDefault();
                 grid.classList.add('drag-over'); // 移入时显示虚线框
 
             };
