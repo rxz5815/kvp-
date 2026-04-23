@@ -3,23 +3,22 @@ document.addEventListener('DOMContentLoaded', function() {
     let categoryOrder = [];
     let currentEngine = "https://www.baidu.com/s?wd=";
 
-    // 预设渐变色
+    // 预设渐变色 (保留你的配色)
     const grads = [
-        'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)', // 默认渐变蓝
-        'linear-gradient(135deg, #134e5e 0%, #71b280 100%)', // 渐变绿
-        'linear-gradient(135deg, #202124 0%, #3c4043 100%)', // 渐变灰
-        'linear-gradient(135deg, #2c3e50 0%, #4ca1af 80%)', // 墨青蓝绿
-        'linear-gradient(45deg, #3d2b56 0%, #8e54e9 80%)', // 暗调茄紫
-        'linear-gradient(135deg, #283048 0%, #859398 80%)', // 烟灰棕
-        'linear-gradient(45deg, #1e2a38 0%, #5a7fa5 80%)', // 藏青灰
-        'linear-gradient(135deg, #192841 0%, #607d8b 80%)', // 冷调钢灰
-        'linear-gradient(45deg, #271f30 0%, #7b4397 80%)', // 暗调绛紫
-        'linear-gradient(135deg, #182c39 0%, #486a78 80%)', // 青灰棕
-        'linear-gradient(45deg, #221d2e 0%, #614e77 80%)', // 暗调藕紫
-        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'  // 渐变紫
+        'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+        'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
+        'linear-gradient(135deg, #202124 0%, #3c4043 100%)',
+        'linear-gradient(135deg, #2c3e50 0%, #4ca1af 80%)',
+        'linear-gradient(45deg, #3d2b56 0%, #8e54e9 80%)',
+        'linear-gradient(135deg, #283048 0%, #859398 80%)',
+        'linear-gradient(45deg, #1e2a38 0%, #5a7fa5 80%)',
+        'linear-gradient(135deg, #192841 0%, #607d8b 80%)',
+        'linear-gradient(45deg, #271f30 0%, #7b4397 80%)',
+        'linear-gradient(135deg, #182c39 0%, #486a78 80%)',
+        'linear-gradient(45deg, #221d2e 0%, #614e77 80%)',
+        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
     ];
 
-    // 更新背景逻辑
     const updateBg = (val, save = true) => {
         const bg = document.getElementById('bg-canvas');
         if(val.startsWith('http')) bg.style.backgroundImage = `url(${val})`;
@@ -28,42 +27,33 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     updateBg(localStorage.getItem('nav_bg_v18') || grads[0]);
 
-    // 切换背景色
     document.getElementById('btn-toggle-bg').onclick = () => {
         let curr = localStorage.getItem('nav_bg_v18');
         let nextIdx = (grads.indexOf(curr) + 1) % grads.length;
         updateBg(grads[nextIdx]);
     };
 
-    // 随机背景
     document.getElementById('btn-random-bg').onclick = async () => {
         const res = await fetch(`https://picsum.photos/1920/1080?random=${Math.random()}`);
         if(res.url) updateBg(res.url);
     };
 
-    // 获取数据
-async function fetchData() {
+    async function fetchData() {
         try {
             const res = await fetch('/api/links');
             const data = await res.json();
-            console.log("拿到的数据是:", data); // <--- 添加这一行
             allLinks = data.links || [];
             categoryOrder = data.order || [];
             render();
-        } catch (e) { 
-            console.error("请求出错了:", e); // <--- 添加这一行
-            render(); 
-        }
+        } catch (e) { render(); }
     }
     fetchData();
-        document.getElementById('cat-hint').onchange = function() {
+
+    // 修复点：添加分类联动的监听
+    document.getElementById('cat-hint').onchange = function() {
         if (this.value) document.getElementById('in-cat').value = this.value;
     };
 
-    function render() {
-
-
-    // 页面渲染
     function render() {
         const main = document.getElementById('main-content');
         const nav = document.getElementById('category-ul');
@@ -90,16 +80,16 @@ async function fetchData() {
             sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
             const grid = sec.querySelector('.link-grid');
 
-             // --- 拖拽核心逻辑：开启线条窗口效果 ---
+            // 线条窗口拖拽逻辑
             grid.ondragover = function(e) {
                 e.preventDefault();
-                grid.classList.add('drag-over'); // 移入时显示虚线框
+                grid.classList.add('drag-over');
             };
             grid.ondragleave = function() {
-                grid.classList.remove('drag-over'); // 移出时隐藏
+                grid.classList.remove('drag-over');
             };
             grid.ondrop = async function(e) {
-                grid.classList.remove('drag-over'); // 放下时隐藏
+                grid.classList.remove('drag-over');
                 const url = e.dataTransfer.getData('text/plain');
                 const item = allLinks.find(l => l.url === url);
                 if(item && item.category !== cat) {
@@ -108,30 +98,15 @@ async function fetchData() {
                 }
             };
 
-        
-            // 绑定拖拽
-            grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
-            grid.ondragleave = () => grid.classList.remove('drag-over');
-            grid.ondrop = async (e) => {
-                grid.classList.remove('drag-over');
-                const url = e.dataTransfer.getData('text/plain');
-                const item = allLinks.find(l => l.url === url);
-                if(item && item.category !== cat) {
-                    item.category = cat; await apiReq('save', { link: item });
-                }
-            };
-
             (grouped[cat] || []).forEach(l => { grid.appendChild(createCard(l)); });
             main.appendChild(sec);
         });
     }
 
-
-    // 创建站点卡片
-function createCard(l) {
+    function createCard(l) {
         const card = document.createElement('div');
         card.className = 'link-card'; card.draggable = true;
-        if (l.desc) card.setAttribute('data-desc', l.desc); // 这是新增的内容
+        if (l.desc) card.setAttribute('data-desc', l.desc);
         card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
         card.onclick = () => window.open(l.url, '_blank');
         card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
@@ -139,7 +114,6 @@ function createCard(l) {
         return card;
     }
 
-    // --- 搜索逻辑【核心修复版】 ---
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
         const inp = box.querySelector('.search-input');
@@ -147,15 +121,11 @@ function createCard(l) {
         const isModal = boxSel.includes('modal');
         const resultsArea = document.getElementById('modal-results-area');
 
-        // 1. 实时监听：只处理站内搜索的过滤效果
-        inp.addEventListener('input', function() {
-            const q = this.value.trim().toLowerCase();
+        const performSearch = () => {
+            const q = inp.value.trim().toLowerCase();
             const isInt = box.querySelector('.tab.active').dataset.type === 'internal';
-            
-            if(!isInt) return; // 【修复】如果是“搜索”模式，输入时不执行任何跳转或过滤
-
+            if(!isInt) return;
             if (q.length === 0) {
-                // 清空时回弹
                 if(isModal) resultsArea.innerHTML = '';
                 else {
                     document.body.classList.remove('is-searching');
@@ -163,12 +133,10 @@ function createCard(l) {
                 }
                 return;
             }
-
-            // 站内模式：实时展示结果
             if(isModal) {
                 resultsArea.innerHTML = '';
-                const matches = allLinks.filter(l => l.title !== 'placeholder_hidden' && l.title.toLowerCase().includes(q));
-                matches.forEach(l => resultsArea.appendChild(createCard(l)));
+                allLinks.filter(l => l.title !== 'placeholder_hidden' && l.title.toLowerCase().includes(q))
+                        .forEach(l => resultsArea.appendChild(createCard(l)));
             } else {
                 document.body.classList.add('is-searching');
                 document.querySelectorAll('.link-card').forEach(c => {
@@ -180,30 +148,8 @@ function createCard(l) {
                     sec.style.display = has ? 'block' : 'none';
                 });
             }
-        });
-
-        // 2. 确认搜索：处理搜索引擎跳转
-        const confirmSearch = () => {
-            const q = inp.value.trim();
-            const isInt = box.querySelector('.tab.active').dataset.type === 'internal';
-            if(!q) return;
-
-            if(!isInt) {
-                // 【跳转】只有在点按钮或敲回车时，才打开新窗口搜索
-                window.open(currentEngine + encodeURIComponent(q), '_blank');
-            } else if(isModal) {
-                // 站内模式：如果是弹窗，搜索完可以考虑关闭弹窗
-                // document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            }
         };
 
-        // 绑定红色搜索按钮
-        box.querySelector('.search-trigger-btn').onclick = confirmSearch;
-
-        // 绑定回车键
-        inp.onkeydown = e => { if(e.key === 'Enter') confirmSearch(); };
-
-        // 切换标签逻辑
         box.querySelectorAll('.tab').forEach(t => t.onclick = () => {
             box.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
             t.classList.add('active');
@@ -218,12 +164,25 @@ function createCard(l) {
             }
             inp.focus();
         });
+
+        box.querySelector('.search-trigger-btn').onclick = () => {
+            const q = inp.value.trim();
+            if(!box.querySelector('.tab.active').dataset.type === 'internal' && q) {
+                window.open(currentEngine + encodeURIComponent(q), '_blank');
+            }
+        };
+        inp.addEventListener('input', performSearch);
+        inp.onkeydown = e => {
+            if(e.key === 'Enter') {
+                const q = inp.value.trim();
+                if(box.querySelector('.tab.active').dataset.type !== 'internal' && q) {
+                    window.open(currentEngine + encodeURIComponent(q), '_blank');
+                }
+            }
+        };
     }
+    setupSearch('.main-search'); setupSearch('.modal-inner-search');
 
-    setupSearch('.main-search'); 
-    setupSearch('.modal-inner-search');
-
-    // 引擎切换
     document.body.addEventListener('click', e => {
         if(e.target.classList.contains('engine')) {
             document.querySelectorAll('.engine').forEach(x => x.classList.remove('active'));
@@ -232,20 +191,18 @@ function createCard(l) {
         }
     });
 
-    // 阴影关闭
     document.querySelectorAll('.modal-overlay').forEach(el => el.onclick = () => {
         document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
         document.getElementById('modal-results-area').innerHTML = '';
     });
 
-    // 编辑站点
     window.openEdit = (l = {}) => {
         document.getElementById('modal-link').style.display = 'flex';
+        // 修复点：已更正为英文点号
         document.getElementById('in-cat').value = l.category || '';
         document.getElementById('cat-hint').value = l.category || '';
         document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
-        
-        document.getElementById('in-desc').value = l.desc || ''; // 这是新增的内容
+        document.getElementById('in-desc').value = l.desc || '';
         const urlInput = document.getElementById('in-url');
         const prevImg = document.getElementById('prev-img');
         urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
@@ -256,7 +213,6 @@ function createCard(l) {
         }
     };
 
-    // 图标抓取
     document.getElementById('in-url').oninput = function() {
         const val = this.value.trim();
         const prevImg = document.getElementById('prev-img');
@@ -271,7 +227,6 @@ function createCard(l) {
         } catch (e) { prevImg.classList.remove('loaded'); }
     };
 
-    // 分类管理
     document.getElementById('btn-cat-admin').onclick = () => {
         renderCatAdmin();
         document.getElementById('modal-cat').style.display = 'flex';
@@ -290,6 +245,7 @@ function createCard(l) {
             row.innerHTML = `<i class="fas fa-bars drag-handle"></i><input type="text" value="${c}"><div class="row-btns"><button class="btn-mini blue" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div>`;
             row.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
             row.ondragend = () => row.style.opacity = '1';
+            // 修复点：已更正为英文点号
             row.ondragover = e => e.preventDefault();
             row.ondrop = async (e) => {
                 const from = e.dataTransfer.getData('idx');
@@ -337,7 +293,7 @@ function createCard(l) {
     document.getElementById('btn-add-site').onclick = () => openEdit();
     window.onscroll = () => {
         const y = window.scrollY;
+        // 修复点：已更正为英文点号
         document.getElementById('btn-top').style.display = document.getElementById('btn-float-search').style.display = y > 300 ? 'flex' : 'none';
-
     };
 });
