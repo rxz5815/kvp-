@@ -298,13 +298,13 @@ function createCard(l) {
     }
 
     async function apiReq(action, data) {
-        let pwd = localStorage.getItem('auth_pwd_v9') || data.password || prompt("管理密码:");
+        let pwd = sessionStorage.getItem('auth_pwd_v9') || data.password || prompt("管理密码:");
         if(!pwd) return;
         const res = await fetch('/api/links', {
             method: 'POST', headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ ...data, password: pwd, action })
         });
-        if(res.ok) { localStorage.setItem('auth_pwd_v9', pwd); fetchData(); return true; }
+        if(res.ok) { sessionStorage.setItem('auth_pwd_v9', pwd); fetchData(); return true; }
         return false;
     }
 
