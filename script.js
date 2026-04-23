@@ -238,7 +238,7 @@ function createCard(l) {
     });
 
     // 编辑站点
-window。openEdit = (l = {}) => {
+window.openEdit = (l = {}) => {
         document.getElementById('modal-link').style.display = 'flex';
         
         // 抓取并填充内容
