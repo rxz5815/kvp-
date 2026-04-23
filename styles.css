@@ -138,7 +138,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 
 .cat-admin-row input { background: transparent !important; border: none !important; flex: 1; color: #fff; font-size: 16px; height: auto !important; padding: 0 !important; }
 .row-btns { display: flex; gap: 8px; margin-left: 10px; }
-.btn-mini { padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; color: #fff; background: #444; }
+.btn-mini { padding: 5px 10px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; color: #fff; background: #444; }
 .btn-mini.blue:hover { background: var(--blue); }
 .btn-mini.red:hover { background: var(--red); }
 
