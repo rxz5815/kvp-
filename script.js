@@ -115,14 +115,29 @@ async function fetchData() {
 function createCard(l) {
         const card = document.createElement('div');
         card.className = 'link-card'; card.draggable = true;
-        if (l.desc) card.setAttribute('data-desc', l.desc); // 这是新增的内容
-        card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
+        if (l.desc) card.setAttribute('data-desc', l.desc);
+
+        // 设置一个通用的保底图标（这里用的是一个灰色的地球图标）
+        const defaultIcon = 'https://www.google.com/s2/favicons?domain=github.com&sz=64';
+
+        card.innerHTML = `
+            <div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div>
+            <img src="${l.icon}" 
+                 onerror="this.src='${defaultIcon}';this.onerror=null;" 
+                 alt="">
+            <h3>${l.title}</h3>
+        `;
+
         card.onclick = () => window.open(l.url, '_blank');
         card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
-        card.ondragstart = (e) => e.dataTransfer.setData('text/plain', l.url);
+        card.ondragstart = (e) => {
+            e.dataTransfer.setData('text/plain', l.url);
+            card.style.opacity = '0.5';
+        };
+        card.ondragend = () => { card.style.opacity = '1'; };
         return card;
     }
-
+    
     // --- 搜索逻辑【核心修复版】 ---
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
