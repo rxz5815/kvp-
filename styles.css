@@ -1,12 +1,13 @@
+/* --- 平滑滚动 --- */
+html {
+    scroll-behavior: smooth; /* 开启全局丝滑滚动效果 */
+}
+
 :root { 
   --red: #ff4d4f; 
   --blue: #4facfe;
   --glass: rgba(255, 255, 255, 0.05); 
   --shadow: 0 12px 40px rgba(0,0,0,0.6); 
-}
-
-html {
-    scroll-behavior: smooth; /* 全局开启丝滑滚动 */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
