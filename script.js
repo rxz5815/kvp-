@@ -81,34 +81,33 @@ async function fetchData() {
             sec.id = cat;
             sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
             const grid = sec.querySelector('.link-grid');
-
-            // --- 找到 render 函数中创建 grid 后的位置 ---
 const grid = sec.querySelector('.link-grid');
+            
+            // --- 只保留这一段即可，下面这一段是完全正确的 ---
+            grid.ondragover = function(e) {
+                e.preventDefault();
+                grid.classList.add('drag-over'); // 移入时显示虚线框
+            };
+            grid.ondragleave = function() {
+                grid.classList.remove('drag-over'); // 移出时隐藏
+            };
+            grid.ondrop = async function(e) {
+                grid.classList.remove('drag-over'); // 放下时隐藏
+                const url = e.dataTransfer.getData('text/plain');
+                const item = allLinks.find(l => l.url === url);
+                if(item && item.category !== cat) {
+                    item.category = cat;
+                    await apiReq('save', { link: item });
+                }
+            };
+            // --- 拖拽逻辑结束 ---
 
-// 1. 当拖拽悬停在分类容器上方时
-grid.ondragover = function(e) {
-    e.preventDefault();              /* 必须：允许放置 */
-    grid.classList.add('drag-over');  /* 开启线条窗口 */
-};
-
-// 2. 当拖拽离开分类容器时
-grid.ondragleave = function() {
-    grid.classList.remove('drag-over'); /* 关闭线条窗口 */
-};
-
-// 3. 当书签被放下（松开鼠标）时
-grid.ondrop = async function(e) {
-    grid.classList.remove('drag-over'); /* 关闭线条窗口 */
-    const url = e.dataTransfer.getData('text/plain');
-    const item = allLinks.find(l => l.url === url);
-    
-    // 如果拖拽的站点确实换了分类，则保存
-    if(item && item.category !== cat) {
-        item.category = cat;
-        await apiReq('save', { link: item }); /* 调用 API 保存到 KV */
-    }
-};
- 
+            // 下面是渲染卡片的逻辑，不要删
+            (grouped[cat] || []).forEach(l => { 
+                grid.appendChild(createCard(l)); 
+            });
+            main.appendChild(sec);
+            
     // 创建站点卡片
 function createCard(l) {
         const card = document.createElement('div');
