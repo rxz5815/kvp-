@@ -115,29 +115,14 @@ async function fetchData() {
 function createCard(l) {
         const card = document.createElement('div');
         card.className = 'link-card'; card.draggable = true;
-        if (l.desc) card.setAttribute('data-desc', l.desc);
-
-        // 设置一个通用的保底图标（这里用的是一个灰色的地球图标）
-        const defaultIcon = 'https://www.google.com/s2/favicons?domain=github.com&sz=64';
-
-        card.innerHTML = `
-            <div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div>
-            <img src="${l.icon}" 
-                 onerror="this.src='${defaultIcon}';this.onerror=null;" 
-                 alt="">
-            <h3>${l.title}</h3>
-        `;
-
+        if (l.desc) card.setAttribute('data-desc', l.desc); // 这是新增的内容
+        card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
         card.onclick = () => window.open(l.url, '_blank');
         card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
-        card.ondragstart = (e) => {
-            e.dataTransfer.setData('text/plain', l.url);
-            card.style.opacity = '0.5';
-        };
-        card.ondragend = () => { card.style.opacity = '1'; };
+        card.ondragstart = (e) => e.dataTransfer.setData('text/plain', l.url);
         return card;
     }
-    
+
     // --- 搜索逻辑【核心修复版】 ---
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
@@ -238,27 +223,22 @@ function createCard(l) {
     });
 
     // 编辑站点
-window.openEdit = (l = {}) => {
+    window.openEdit = (l = {}) => {
         document.getElementById('modal-link').style.display = 'flex';
-        
-        // 抓取并填充内容
+        document.getElementById('in-cat').value = l.category || '';
         document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
-        document.getElementById('cat-hint').value = l.category || '';
-        document.getElementById('in-desc').value = l.desc || '';
         
+        document.getElementById('in-desc').value = l.desc || ''; // 这是新增的内容
         const urlInput = document.getElementById('in-url');
         const prevImg = document.getElementById('prev-img');
         urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
-        
         if (l.icon && l.icon !== '') {
-            prevImg.src = l.icon; 
-            prevImg.classList.add('loaded');
+            prevImg.src = l.icon; prevImg.classList.add('loaded');
         } else {
-            prevImg.src = ''; 
-            prevImg.classList.remove('loaded');
+            prevImg.src = ''; prevImg.classList.remove('loaded');
         }
     };
-    
+
     // 图标抓取
     document.getElementById('in-url').oninput = function() {
         const val = this.value.trim();
@@ -283,7 +263,7 @@ window.openEdit = (l = {}) => {
     function renderCatAdmin() {
         const box = document.getElementById('cat-list-box');
         box.innerHTML = '';
-        const cats = [...new Set(allLinks.map(l => l.category))];
+        const cats = [...new Set(allLinks。map(l => l.category))];
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
 
