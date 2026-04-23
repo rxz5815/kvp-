@@ -164,7 +164,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .scroll-area::-webkit-scrollbar { width: 6px; }
 .scroll-area::-webkit-scrollbar-track { background: transparent; }
 .scroll-area::-webkit-scrollbar-thumb { background: #999; border-radius: 99px; }
-.cat-admin-row { display: flex; align-items: center; background: #222; padding: 12px; border-radius: 14px; margin-bottom: 12px; cursor: move; }
+.cat-admin-row { display: flex; align-items: center; background: #222; padding: 1px 12px 1px 12px; border-radius: 14px; margin-bottom: 12px; cursor: move; }
 
 /* --- 新增：修改三条杠颜色 --- */
 .drag-handle { color: #555; margin-right: 12px; cursor: grab; }
