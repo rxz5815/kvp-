@@ -56,6 +56,12 @@ async function fetchData() {
         }
     }
     fetchData();
+        document.getElementById('cat-hint').onchange = function() {
+        if (this.value) document.getElementById('in-cat').value = this.value;
+    };
+
+    function render() {
+
 
     // 页面渲染
     function render() {
@@ -235,7 +241,8 @@ function createCard(l) {
     // 编辑站点
     window.openEdit = (l = {}) => {
         document.getElementById('modal-link').style.display = 'flex';
-        document.getElementById('in-cat').value = l.category || '';
+        document。getElementById('in-cat').value = l.category || '';
+        document.getElementById('cat-hint').value = l.category || '';
         document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
         
         document.getElementById('in-desc').value = l.desc || ''; // 这是新增的内容
@@ -283,7 +290,7 @@ function createCard(l) {
             row.innerHTML = `<i class="fas fa-bars drag-handle"></i><input type="text" value="${c}"><div class="row-btns"><button class="btn-mini blue" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div>`;
             row.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
             row.ondragend = () => row.style.opacity = '1';
-            row.ondragover = e => e.preventDefault();
+            row。ondragover = e => e.preventDefault();
             row.ondrop = async (e) => {
                 const from = e.dataTransfer.getData('idx');
                 const to = idx;
@@ -330,6 +337,6 @@ function createCard(l) {
     document.getElementById('btn-add-site').onclick = () => openEdit();
     window.onscroll = () => {
         const y = window.scrollY;
-        document.getElementById('btn-top').style.display = document.getElementById('btn-float-search').style.display = y > 300 ? 'flex' : 'none';
+        document。getElementById('btn-top').style.display = document.getElementById('btn-float-search').style.display = y > 300 ? 'flex' : 'none';
     };
 });
