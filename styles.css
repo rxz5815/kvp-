@@ -50,16 +50,16 @@ section { margin-top: 20px; }
 .category-title { border-left: 4px solid var(--red); padding-left: 12px; margin-bottom: 20px; font-weight: 500; font-size: 22px; }
 
 /* 图标容器基础样式 */
-.link-grid { 
-    display: grid !important;                               /* 核心：必须有这一行，否则图标会变宽 */
-    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)) !important; /* 核心：定义每列宽度 */
-    gap: 20px; 
-    min-height: 110px;                                      /* 保底高度，解决🚫问题 */
+.link-grid {
+    display: grid !important; /* 必须有这行，否则图标会 100% 宽度 */
+    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)) !important; /* 必须有这行，否则不会横向排开 */
+    gap: 20px;
+    min-height: 110px;
     padding: 10px; 
-    margin-left: -10px;                                     /* 对齐修正 */
+    margin-left: -10px;                                    
     margin-right: -10px; 
     border: 2px dashed transparent; 
-    transition: all 0.3s ease;
+    transition: 全部 0.3s ease;
 }
 
 /* 当书签被拖拽到分类上方时触发的样式 */
