@@ -179,7 +179,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     left: 50%;
     transform: translateX(-50%);
     margin-top: 15px;       /* 与卡片保持 10px 间距 */
-    background: rgba(255, 255, 255, 0.75); /* 稍微加深背景 */
+    background: rgba(255, 255, 255, 0.85); /* 稍微加深背景 */
     color: #000000;
     padding: 8px 12px;      /* 增加内边距，更有呼吸感 */
     border-radius: 8px;
