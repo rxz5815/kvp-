@@ -116,6 +116,15 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .full-width-input { width: 100% !important; margin-bottom: 15px !important; display: block; flex: none !important; }
 #in-cat, #in-url { flex: 1 !important; }
 
+/* --- 单独精准修改“站点标题”输入框的长短 --- */
+#in-title {
+    width: 140px !important;  /* 100% 是最长，你可以改为 80% 或 300px 等数值 */
+    
+    /* 如果你把宽度调小了（比如 80%），想让它居中，可以加上下面这两行 */
+    /* margin-left: auto !important; */
+    /* margin-right: auto !important; */
+}
+
 /* 图标预览 */
 .icon-preview-box { width: 50px !important; height: 50px !important; background: #000 !important; border-radius: 12px !important; border: 1px solid #333 !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; overflow: hidden !important; }
 .icon-preview-box img { width: 28px; height: 28px; object-fit: contain; display: none; }
