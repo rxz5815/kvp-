@@ -103,9 +103,9 @@ async function fetchData() {
 
             // 下面是渲染卡片的逻辑，不要删
             (grouped[cat] || []).forEach(l => { 
-                grid.appendChild(createCard(l)); 
+            grid.appendChild(createCard(l)); 
             });
-            main。appendChild(sec);
+            main.appendChild(sec);
         });
     }
 
