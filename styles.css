@@ -48,25 +48,7 @@ header h1 { text-align: center; font-weight: 300; font-size: 40px; color: #fffff
 /* 站点展示 */
 section { margin-top: 80px; }
 .category-title { border-left: 4px solid var(--red); padding-left: 12px; margin-bottom: 30px; font-weight: 500; font-size: 22px; }
-
-/* --- 核心修复：空分类拖拽容器 --- */
-.link-grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); 
-    gap: 20px; 
-    min-height: 80px; /* 关键：给空分类一个高度，解决🚫问题 */
-    padding: 15px; 
-    border-radius: 18px;
-    border: 2px dashed transparent; 
-    transition: all 0.2s ease;
-}
-
-/* 拖拽进入时的线条窗口效果 */
-.link-grid.drag-over { 
-    background: rgba(79, 172, 254, 0.08) !important; 
-    border-color: var(--blue) !important; 
-    transform: scale(1.01);
-}
+.link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 20px; }
 
 /* 站内搜索模式样式 */
 body.is-searching .category-title, body.is-searching #sticky-nav { display: none !important; }
@@ -76,7 +58,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .link-card:hover {
     transform: translateY(-8px);
     border-color: var(--blue);
-    z-index: 1001; /* 确保 Hover 时描述文字在最上层 */
+    z-index: 1001; /* <--- 核心修复：确保 Hover 时卡片及描述文字永远在最上层 */
 }
 .link-card img { width: 40px; height: 40px; border-radius: 10px; margin-bottom: 10px; }
 .link-card h3 { font-size: 13px; font-weight: 300; }
@@ -124,7 +106,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .search-modal-container { max-width: 600px; display: flex; flex-direction: column; max-height: 85vh; }
 #modal-results-area { flex: 1; overflow-y: auto; margin-top: 20px; padding-top: 15px; }
 
-/* 保存按钮交互 */
+/* 保存按钮 */
 .save-btn-new { width: 100% !important; height: 52px !important; background: #333 !important; border: none !important; color: #fff !important; border-radius: 14px !important; font-weight: bold !important; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
 .save-btn-new:hover { background: var(--red) !important; transform: translateY(-4px); font-weight: 900; box-shadow: 0 5px 15px rgba(255, 77, 79, 0.4); }
 
@@ -132,6 +114,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .scroll-area { max-height: 50vh; overflow-y: auto; padding-right: 5px; }
 .cat-admin-row { display: flex; align-items: center; background: #222; padding: 12px; border-radius: 14px; margin-bottom: 12px; cursor: move; }
 
+/* --- 新增：修改三条杠颜色 --- */
 .drag-handle { color: #555; margin-right: 12px; cursor: grab; }
 
 .cat-admin-row input { background: transparent !important; border: none !important; flex: 1; color: #fff; font-size: 16px; height: auto !important; padding: 0 !important; }
@@ -140,9 +123,9 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .btn-mini.blue:hover { background: var(--blue); }
 .btn-mini.red:hover { background: var(--red); }
 
-/* 自适应添加分类区域 */
+/* --- 修改：自适应添加分类区域 --- */
 .add-cat-area { display: flex; gap: 10px; padding-top: 20px; border-top: 1px solid #333; margin-top: 10px; width: 100%; }
-.add-cat-area input { flex: 1 !important; height: 45px !important; min-width: 0; }
+.add-cat-area input { flex: 0.98; height: 45px !important; min-width: 0; }
 .btn-add-cat { width: 90px; height: 45px; background: #333; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; flex-shrink: 0; }
 .btn-add-cat:hover { background: var(--blue); }
 
@@ -156,31 +139,35 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .link-card[data-desc]::after {
     content: attr(data-desc);
     position: absolute;
-    top: 100%;
+    top: 100%;              /* 改为从卡片底部开始计算 */
     left: 50%;
     transform: translateX(-50%);
-    margin-top: 15px;
-    background: rgba(255, 255, 255, 0.75);
+    margin-top: 15px;       /* 与卡片保持 10px 间距 */
+    background: rgba(255, 255, 255, 0.75); /* 稍微加深背景 */
     color: #000000;
-    padding: 8px 12px;
+    padding: 8px 12px;      /* 增加内边距，更有呼吸感 */
     border-radius: 8px;
     font-size: 12px;
     z-index: 1000;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.15s;
-    width: 115px;
-    white-space: normal;
-    word-wrap: break-word;
-    line-height: 1.5;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+
+    /* --- 核心修复：换行逻辑 --- */
+    width: 115px;           /* 设置一个固定宽度，超过就换行 */
+    white-space: normal;    /* 允许文字自然换行 */
+    word-wrap: break-word;  /* 强制长单词/无空格字符换行 */
+    line-height: 1.5;       /* 增加行高，多行时阅读更舒适 */
+    text-align: center;     /* 文字居中对齐 */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* 增加阴影，更有立体感 */
 }
 
+/* 鼠标移入时立刻显示 */
 .link-card:hover[data-desc]::after {
     opacity: 1;
 }
 
+/* 如果没有简介，则不显示气泡 */
 .link-card[data-desc=""]::after {
     display: none;
 }
