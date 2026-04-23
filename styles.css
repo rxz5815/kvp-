@@ -42,7 +42,7 @@ header h1 { text-align: center; font-weight: 300; font-size: 40px; color: #fffff
 }
 
 #category-ul { display: flex; justify-content: center; list-style: none; padding: 10px; flex-wrap: wrap; gap: 10px; }
-#category-ul a { color: #ccc !important; text-decoration: none; font-size: 16px; padding: 6px 12px; border-radius: 8px; transition: all 0.3s ease; display: inline-block; }
+#category-ul a { color: #ccc !important; text-decoration: none; font-size: 16px; padding: 5px 10px; border-radius: 8px; transition: all 0.3s ease; display: inline-block; }
 #category-ul a:hover { color: #fff !important; background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
 /* 站点展示 */
