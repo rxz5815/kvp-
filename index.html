@@ -67,26 +67,25 @@
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
       <h3 class="modal-title-center">编辑站点</h3>
-      <form id="link-form">
-        
-        <!-- 选择分类： -->
-        <div class="modal-row custom-row-align">
-        <input 输入="text" name="title" id="in-title" placeholder="站点标题" class="full-width-input" required>
-            <select id="cat-hint"></select>
-        </div>
-        
-        <!-- 站点描述 -->
-        <input type="text" name="desc" id="in-desc" placeholder="站点描述" class="full-width-input">  <!-- 这是新增的内容 -->
-
-        
-        <!-- 网址行：网址框 + 图标预览框 强制高度一致并左右对齐 -->
-        <div class="modal-row custom-row-align">
-            <input type="url" name="url" id="in-url" placeholder="https://..." required>
-            <div class="icon-preview-box"><img id="prev-img" src=""></div>
-        </div>
-        
-        <button type="submit" class="save-btn-new">保存站点</button>
-      </form>
+<form id="link-form">
+  
+    <!-- 第一行：左侧标题，右侧分类选择 -->
+    <div class="modal-row custom-row-align">
+        <input type="text" name="title" id="in-title" placeholder="站点标题" required>
+        <select name="category" id="cat-hint"></select>
+    </div>
+    
+    <!-- 第二行：站点描述 -->
+    <input type="text" name="desc" id="in-desc" placeholder="站点描述" class="full-width-input">
+    
+    <!-- 第三行：网址 + 预览图标 -->
+    <div class="modal-row custom-row-align">
+        <input type="url" name="url" id="in-url" placeholder="https://..." required>
+        <div class="icon-preview-box"><img id="prev-img" src=""></div>
+    </div>
+    
+    <button type="submit" class="save-btn-new">保存站点</button>
+    </form>
     </div>
   </div>
 
