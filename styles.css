@@ -63,6 +63,7 @@ section {
     padding: 10px; 
     margin-left: -10px;                                    
     margin-right: -10px; 
+    border-radius: 18px;
     border: 2px dashed transparent; 
     transition: 全部 0.3s ease;
 }
@@ -134,7 +135,6 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
   margin-top: 10px;
   padding-top: 10px;
   padding-bottom: 0;
-}
 
   /* Firefox 美化 */
   scrollbar-width: thin;
