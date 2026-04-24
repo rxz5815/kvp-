@@ -255,3 +255,16 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     height: 50px !important;
     border-radius: 12px !important;
 }
+
+
+/* 拖拽时的卡片半透明 */
+.link-card.dragging {
+    opacity: 0.4;
+    border: 2px dashed var(--blue);
+}
+
+/* 目标位置的蓝色提示线（左侧） */
+.link-card.drag-insert-before {
+    border-left: 4px solid var(--blue) !important;
+    transform: translateX(4px);
+}
