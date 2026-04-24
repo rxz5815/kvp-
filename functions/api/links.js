@@ -1,6 +1,5 @@
 export async function onRequest(context) {
   const { request, env } = context;
-  // 必须在这里增加 subcategory 的提取
   const { password, link, action, oldCategory, newCategory, subcategory, order } = await request.json().catch(() => ({}));
 
   if (request.method === 'GET') {
@@ -35,7 +34,7 @@ export async function onRequest(context) {
   } else if (action === 'deleteCategory') {
     links = links.filter(l => l.category !== oldCategory);
   } else if (action === 'addCategory') {
-    // 修复点：确保这里能接收前端传来的 subcategory
+    // 允许添加带二级分类的占位站点
     links.push({ 
         category: newCategory, 
         subcategory: subcategory || '', 
