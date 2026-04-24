@@ -299,13 +299,10 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 /* 品牌区 */
 .brand-logo {
     font-size: 20px;
-    font-weight: 600;
+    font-weight: 100; /* 加粗 */
     letter-spacing: 1px;
     color: rgba(255,255,255,0.9);
-}
-.brand-logo span {
-    color: var(--red); /* 使用你的主题红 */
-    margin-left: 2px;
+
 }
 .footer-brand p {
     font-size: 12px;
@@ -365,7 +362,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 }
 
 /* 移动端适配 */
-@media (max-width: 600px) {
+@media (max-width: 100px) {
     .nav-group {
         gap: 15px;
     }
