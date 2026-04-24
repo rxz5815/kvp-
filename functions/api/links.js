@@ -14,8 +14,8 @@ export async function onRequest(context) {
   if (password !== env.EDIT_PASSWORD) return new Response('Unauthorized', { status: 401 });
 
   // 处理排序更新
-  if (action === 'updateOrder') {
-    await env.LINKS_KV.put('category_order', JSON.stringify(order));
+  if (action === 'updateLinksOrder') {
+    await env.LINKS_KV.put('all_links', JSON.stringify(link)); 
     return new Response('OK', { status: 200 });
   }
 
