@@ -51,9 +51,26 @@ section {
     margin-top: 50px; 
     scroll-margin-top: 100px;    
     transition: 0.3s; 
-}
-.category-title { border-left: 4px solid var(--red); padding-left: 12px; margin-bottom: 20px; font-weight: 500; font-size: 22px; }
 
+  .category-header {
+    display: flex;
+    align-items: center;
+    margin-top: 50px;       /* 保持原来的间距 */
+    margin-bottom: 20px;
+    border-left: 4px solid var(--red); /* 红条移到这里 */
+    padding-left: 12px;
+    scroll-margin-top: 100px;
+}
+
+.category-title {
+    border: none !important; /* 必须去掉原来的边框 */
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 22px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #fff;
+}
 /* 图标容器基础样式 */
 .link-grid {
     display: grid !important; /* 必须有这行，否则图标会 100% 宽度 */
@@ -365,4 +382,52 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     .nav-group {
         gap: 15px;
     }
+}
+
+
+/* --- 新增：二级分类标签系统 --- */
+.category-divider {
+    margin: 0 15px;
+    color: rgba(255,255,255,0.2);
+    font-weight: 100;
+    font-size: 18px;
+}
+
+.subcategory-bar {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.sub-tag {
+    font-size: 14px;
+    color: rgba(255,255,255,0.4); /* 默认半透明灰色 */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 2px 0;
+}
+
+/* 悬停和激活状态 */
+.sub-tag:hover, .sub-tag.active {
+    color: #fff;
+}
+
+/* 蓝色激活下划线 */
+.sub-tag.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--blue);
+    box-shadow: 0 2px 8px rgba(79, 172, 254, 0.5);
+}
+
+/* 弹窗内的输入框微调 */
+#in-subcat {
+    flex: none !important;
+    width: 150px !important; /* 给二级分类输入框一个固定宽度 */
 }
