@@ -6,21 +6,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const yearEl = document.getElementById('current-year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    // 预设渐变色
     const grads = [
-        'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)', // 默认渐变蓝
-        'linear-gradient(135deg, #134e5e 0%, #71b280 100%)', // 渐变绿
-        'linear-gradient(135deg, #202124 0%, #3c4043 100%)', // 渐变灰
-        'linear-gradient(135deg, #2c3e50 0%, #4ca1af 80%)', // 墨青蓝绿
-        'linear-gradient(45deg, #3d2b56 0%, #8e54e9 80%)', // 暗调茄紫
-        'linear-gradient(135deg, #283048 0%, #859398 80%)', // 烟灰棕
-        'linear-gradient(45deg, #1e2a38 0%, #5a7fa5 80%)', // 藏青灰
-        'linear-gradient(135deg, #192841 0%, #607d8b 80%)', // 冷调钢灰
-        'linear-gradient(45deg, #271f30 0%, #7b4397 80%)', // 暗调绛紫
-        'linear-gradient(135deg, #182c39 0%, #486a78 80%)', // 青灰棕
-        'linear-gradient(45deg, #221d2e 0%, #614e77 80%)', // 暗调藕紫
-        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'  // 渐变紫
-        
+        'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+        'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
+        'linear-gradient(135deg, #202124 0%, #3c4043 100%)',
+        'linear-gradient(135deg, #2c3e50 0%, #4ca1af 80%)',
+        'linear-gradient(45deg, #3d2b56 0%, #8e54e9 80%)',
+        'linear-gradient(135deg, #283048 0%, #859398 80%)',
+        'linear-gradient(45deg, #1e2a38 0%, #5a7fa5 80%)',
+        'linear-gradient(135deg, #192841 0%, #607d8b 80%)',
+        'linear-gradient(45deg, #271f30 0%, #7b4397 80%)',
+        'linear-gradient(135deg, #182c39 0%, #486a78 80%)',
+        'linear-gradient(45deg, #221d2e 0%, #614e77 80%)',
+        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    ];
+
     const updateBg = (v, s = true) => {
         const b = document.getElementById('bg-canvas');
         if(v.startsWith('http')) b.style.backgroundImage = `url(${v})`; else b.style.background = v;
@@ -45,16 +45,15 @@ document.addEventListener('DOMContentLoaded', function() {
             allLinks = data.links || [];
             categoryOrder = data.order || [];
             render();
-        } catch (e) { render(); }
+        } catch (e) { console.error(e); render(); }
     }
     fetchData();
 
-    // 核心渲染逻辑
     function render() {
         const main = document.getElementById('main-content');
         const nav = document.getElementById('category-ul');
         const hint = document.getElementById('cat-hint');
-        main.innerHTML = ''; nav.innerHTML = ''; hint.innerHTML = '<option value="">选择分类</option>';
+        main.innerHTML = ''; nav.innerHTML = ''; hint.innerHTML = '<option value="">选择大分类</option>';
 
         const grouped = allLinks.reduce((acc, l) => {
             if (!acc[l.category]) acc[l.category] = [];
@@ -62,15 +61,18 @@ document.addEventListener('DOMContentLoaded', function() {
             return acc;
         }, {});
 
-        let sortedCats = categoryOrder.filter(c => Object.keys(grouped).includes(c));
-        Object.keys(grouped).forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
+        let cats = Object.keys(grouped);
+        let sortedCats = categoryOrder.filter(c => cats.includes(c));
+        cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
 
         sortedCats.forEach(cat => {
             nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
             hint.innerHTML += `<option value="${cat}">${cat}</option>`;
             
             const currentLinks = grouped[cat] || [];
-            const subCats = ['全部', ...new Set(currentLinks.filter(l => l.subcategory).map(l => l.subcategory))];
+            // 提取二级分类标签，包含那些在 addCategory 里的占位子类
+            const allSubsInCat = allLinks.filter(l => l.category === cat && l.subcategory).map(l => l.subcategory);
+            const subCats = ['全部', ...new Set(allSubsInCat)];
             
             let subBarHtml = '';
             if (subCats.length > 1) { 
@@ -88,7 +90,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             tags.forEach(t => t.onclick = () => {
                 tags.forEach(x => x.classList.remove('active')); t.classList.add('active');
-                grid.querySelectorAll('.link-card').forEach(c => c.style.display = (t.dataset.sub==='全部' || c.dataset.subcat===t.dataset.sub) ? '' : 'none');
+                const filter = t.dataset.sub;
+                grid.querySelectorAll('.link-card').forEach(c => {
+                    c.style.display = (filter === '全部' || c.dataset.subcat === filter) ? '' : 'none';
+                });
             });
 
             currentLinks.forEach(l => {
@@ -127,9 +132,8 @@ document.addEventListener('DOMContentLoaded', function() {
         card.ondragleave = () => card.classList.remove('drag-insert-before');
         card.ondrop = async (e) => {
             e.preventDefault(); card.classList.remove('drag-insert-before');
-            const draggedUrl = e.dataTransfer.getData('text/plain');
-            if (draggedUrl === l.url) return;
-            const from = allLinks.findIndex(x => x.url === draggedUrl), to = allLinks.findIndex(x => x.url === l.url);
+            const url = e.dataTransfer.getData('text/plain');
+            const from = allLinks.findIndex(x => x.url === url), to = allLinks.findIndex(x => x.url === l.url);
             if (from > -1 && to > -1) {
                 const item = allLinks.splice(from, 1)[0]; item.category = l.category; allLinks.splice(to, 0, item);
                 render(); apiReq('updateLinksOrder', { link: allLinks }, true);
@@ -138,11 +142,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return card;
     }
 
-    // --- 核心修复：二级下拉框联动函数 ---
     function updateSubcatDropdown(selectedCat, currentSub = "") {
         const subSelect = document.getElementById('in-subcat');
-        subSelect.innerHTML = '<option value="">二级小类 (选填)</option>';
+        subSelect.innerHTML = '<option value="">选择二级小类</option>';
         if (!selectedCat) return;
+        // 查找该大类下所有已定义的二级分类名
         const subCats = [...new Set(allLinks.filter(l => l.category === selectedCat && l.subcategory).map(l => l.subcategory))];
         subCats.forEach(s => {
             const opt = document.createElement('option');
@@ -152,7 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 监听大类切换
     document.getElementById('cat-hint').onchange = function() { updateSubcatDropdown(this.value); };
 
     window.openEdit = (l = {}) => {
@@ -166,14 +169,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if (l.icon) { prevImg.src = l.icon; prevImg.classList.add('loaded'); } else { prevImg.src = ''; prevImg.classList.remove('loaded'); }
     };
 
-    // 分类管理界面
+    document.getElementById('in-url').oninput = function() {
+        const val = this.value.trim();
+        const prevImg = document.getElementById('prev-img');
+        if (!val || !val.startsWith('http')) { prevImg.src = ''; prevImg.classList.remove('loaded'); return; }
+        try {
+            const domain = new URL(val).hostname;
+            const iconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            const tempImg = new Image();
+            tempImg.src = iconUrl;
+            tempImg.onload = () => { prevImg.src = iconUrl; prevImg.classList.add('loaded'); };
+            tempImg.onerror = () => { prevImg.src = ''; prevImg.classList.remove('loaded'); };
+        } catch (e) { }
+    };
+
     function renderCatAdmin() {
-        const box = document.getElementById('cat-list-box');
-        box.innerHTML = '';
+        const box = document.getElementById('cat-list-box'); box.innerHTML = '';
         const cats = [...new Set(allLinks.map(l => l.category))];
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
-
         sortedCats.forEach((c, idx) => {
             const row = document.createElement('div');
             row.className = 'cat-admin-row'; row.draggable = true;
@@ -191,7 +205,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 辅助功能
     window.addSubCatPrompt = (mainCat) => {
         const sub = prompt(`为 [${mainCat}] 添加二级小类名称:`);
         if (sub) apiReq('addCategory', { newCategory: mainCat, subcategory: sub.trim() });
@@ -209,18 +222,74 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
     }
 
-    // 按钮绑定
+    // 搜索逻辑
+    function setupSearch(boxSel) {
+        const box = document.querySelector(boxSel);
+        const inp = box.querySelector('.search-input'), resultsArea = document.getElementById('modal-results-area');
+        inp.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase(), isInt = box.querySelector('.tab.active').dataset.type === 'internal';
+            if(!isInt) return;
+            if(!q) { 
+                if(boxSel.includes('modal')) resultsArea.innerHTML = '';
+                else { document.body.classList.remove('is-searching'); document.querySelectorAll('.link-card, section').forEach(el => el.style.display = ''); }
+                return;
+            }
+            if(boxSel.includes('modal')) {
+                resultsArea.innerHTML = '';
+                allLinks.filter(l => l.title !== 'placeholder_hidden' && l.title.toLowerCase().includes(q)).forEach(l => resultsArea.appendChild(createCard(l)));
+            } else {
+                document.body.classList.add('is-searching');
+                document.querySelectorAll('.link-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? '' : 'none');
+                document.querySelectorAll('section').forEach(s => {
+                    const has = Array.from(s.querySelectorAll('.link-card')).some(c => c.style.display !== 'none');
+                    s.style.display = has ? '' : 'none';
+                });
+            }
+        });
+        const confirm = () => { const q = inp.value.trim(); if(q && box.querySelector('.tab.active').dataset.type !== 'internal') window.open(currentEngine + encodeURIComponent(q), '_blank'); };
+        box.querySelector('.search-trigger-btn').onclick = confirm;
+        inp.onkeydown = e => { if(e.key === 'Enter') confirm(); };
+        box.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+            box.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active');
+            const isInt = t.dataset.type === 'internal';
+            if(box.querySelector('.search-engines')) box.querySelector('.search-engines').style.display = isInt ? 'none' : 'flex';
+            inp.placeholder = isInt ? "快速检索站内..." : "输入搜索内容";
+            inp.value = ""; fetchData();
+        });
+    }
+    setupSearch('.main-search'); setupSearch('.modal-inner-search');
+
+    document.body.addEventListener('click', e => {
+        if(e.target.classList.contains('engine')) {
+            document.querySelectorAll('.engine').forEach(x => x.classList.remove('active'));
+            e.target.classList.add('active'); currentEngine = e.target.dataset.url;
+        }
+    });
+
+    document.querySelectorAll('.modal-overlay').forEach(el => el.onclick = () => {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        if(document.getElementById('modal-results-area')) document.getElementById('modal-results-area').innerHTML = '';
+    });
+
     document.getElementById('btn-cat-admin').onclick = () => { renderCatAdmin(); document.getElementById('modal-cat').style.display = 'flex'; };
     document.getElementById('btn-add-site').onclick = () => openEdit();
-    
-    // 其他原有搜索和工具逻辑 ( setupSearch, 图标抓取等 ) ... 
-    // [此处省略你已写好的搜索逻辑，请保留你原本的代码]
-    
+    window.deleteSite = (e, u) => { e.stopPropagation(); if(confirm("确定删除吗？")) apiReq('delete', { link: {url:u} }); };
+    window.renameCat = (o, b) => apiReq('renameCategory', { oldCategory: o, newCategory: b.closest('.cat-admin-row').querySelector('input').value });
+    window.deleteCat = (c) => confirm(`删除分类 "${c}"？`) && apiReq('deleteCategory', { oldCategory: c });
+    window.addNewCategory = () => { const n = document.getElementById('new-cat-input').value.trim(); if(n) apiReq('addCategory', { newCategory: n }).then(() => document.getElementById('new-cat-input').value = ''); };
+
     document.getElementById('link-form').onsubmit = async function(e) {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(this));
         if (!data.category) return alert("请选择分类！");
         data.icon = document.getElementById('prev-img').src;
         if(await apiReq('save', { link: data })) document.getElementById('modal-link').style.display = 'none';
+    };
+
+    document.getElementById('btn-top').onclick = () => window.scrollTo({top:0, behavior:'smooth'});
+    document.getElementById('btn-float-search').onclick = () => { document.getElementById('modal-search').style.display='flex'; setTimeout(() => document.querySelector('.modal-inner-search .search-input').focus(), 100); };
+    window.onscroll = () => {
+        const y = window.scrollY;
+        document.getElementById('btn-top').style.display = document.getElementById('btn-float-search').style.display = y > 300 ? 'flex' : 'none';
     };
 });
