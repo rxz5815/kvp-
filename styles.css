@@ -116,7 +116,14 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .modal-title-center { text-align: center !important; margin-bottom: 30px; font-weight: 500; font-size: 20px; display: block; width: 100%; }
 
 /* 编辑站点对齐 */
-.modal-row { display: flex !important; gap: 12px !important; margin-bottom: 15px !important; width: 100% !important; align-items: stretch !important; }
+.modal-row { 
+  display: flex !important; 
+  gap: 12px !important; 
+  margin-bottom: 15px !important; 
+  width: 100% !important; 
+  align-items: stretch !important; 
+  margin-top: 15px;
+}
 .modern-modal input, .modern-modal select { 
     height: 50px !important; 
     background: #000 !important; 
@@ -255,7 +262,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 }
 
 #cat-hint {
-    width: 130px !important; /* 分类下拉框固定宽度 */
+    width: 50% !important; /* 分类下拉框固定宽度 */
     flex: none !important;
 }
 
@@ -436,5 +443,5 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 /* 弹窗内的输入框微调 */
 #in-subcat {
     flex: none !important;
-    width: 150px !important; /* 给二级分类输入框一个固定宽度 */
+    width: 47% !important; /* 给二级分类输入框一个固定宽度 */
 }
