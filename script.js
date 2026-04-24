@@ -3,6 +3,28 @@ document.addEventListener('DOMContentLoaded', function() {
     let categoryOrder = [];
     let currentEngine = "https://www.baidu.com/s?wd=";
 
+        // 渐变背景
+    const grads = [
+        'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)', // 默认渐变蓝
+        'linear-gradient(135deg, #134e5e 0%, #71b280 100%)', // 渐变绿
+        'linear-gradient(135deg, #202124 0%, #3c4043 100%)', // 渐变灰
+        'linear-gradient(135deg, #2c3e50 0%, #4ca1af 80%)', // 墨青蓝绿
+        'linear-gradient(45deg, #3d2b56 0%, #8e54e9 80%)', // 暗调茄紫
+        'linear-gradient(135deg, #283048 0%, #859398 80%)', // 烟灰棕
+        'linear-gradient(45deg, #1e2a38 0%, #5a7fa5 80%)', // 藏青灰
+        'linear-gradient(135deg, #192841 0%, #607d8b 80%)', // 冷调钢灰
+        'linear-gradient(45deg, #271f30 0%, #7b4397 80%)', // 暗调绛紫
+        'linear-gradient(135deg, #182c39 0%, #486a78 80%)', // 青灰棕
+        'linear-gradient(45deg, #221d2e 0%, #614e77 80%)', // 暗调藕紫
+        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'  // 渐变紫
+    ];
+
+            // 图片背景
+        document.getElementById('btn-random-bg').onclick = async () => {
+        const res = await fetch(`https://picsum.photos/1920/1080?random=${Math.random()}`);
+        if(res.url) updateBg(res.url);
+    };
+
     // --- 修复问题 2: 点击遮罩层关闭弹窗 ---
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.onclick = () => {
