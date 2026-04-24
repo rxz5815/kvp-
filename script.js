@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
             allLinks = data.links || [];
             categoryOrder = data.order || [];
             render();
-        } catch (e) { console.error(e); render(); }
+        } catch (e) { render(); }
     }
     fetchData();
 
@@ -64,24 +64,20 @@ document.addEventListener('DOMContentLoaded', function() {
         let cats = Object.keys(grouped);
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
-        
-sortedCats.forEach(cat => {
+
+        sortedCats.forEach(cat => {
             nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
             hint.innerHTML += `<option value="${cat}">${cat}</option>`;
             
-            // --- 关键修复：直接从 allLinks 提取该大类下所有的二级分类（包括隐藏占位符里的） ---
-            const allSubsInCat = allLinks
-                .filter(l => l.category === cat && l.subcategory && l.subcategory.trim() !== '')
-                .map(l => l.subcategory);
+            // --- 核心修复：定义 currentLinks ---
+            const currentLinks = allLinks.filter(l => l.category === cat && l.title !== 'placeholder_hidden');
+            const allSubsInCat = allLinks.filter(l => l.category === cat && l.subcategory).map(l => l.subcategory);
             const subCats = ['全部', ...new Set(allSubsInCat)];
             
             let subBarHtml = '';
-            // 只要 subCats 长度大于 1（即除了“全部”外还有别的），就显示标签栏
             if (subCats.length > 1) { 
                 subBarHtml = `<div class="category-divider">|</div><div class="subcategory-bar">`;
-                subCats.forEach((s, i) => {
-                    subBarHtml += `<span class="sub-tag ${i===0?'active':''}" data-sub="${s}">${s}</span>`;
-                });
+                subCats.forEach((s, i) => subBarHtml += `<span class="sub-tag ${i===0?'active':''}" data-sub="${s}">${s}</span>`);
                 subBarHtml += `</div>`;
             }
 
@@ -89,16 +85,12 @@ sortedCats.forEach(cat => {
             sec.id = cat;
             sec.innerHTML = `<div class="category-header"><h2 class="category-title">${cat}</h2>${subBarHtml}</div><div class="link-grid" data-cat="${cat}"></div>`;
             
-            // 渲染卡片逻辑
             const grid = sec.querySelector('.link-grid');
             const tags = sec.querySelectorAll('.sub-tag');
 
             tags.forEach(t => t.onclick = () => {
                 tags.forEach(x => x.classList.remove('active')); t.classList.add('active');
-                const filter = t.dataset.sub;
-                grid.querySelectorAll('.link-card').forEach(c => {
-                    c.style.display = (filter === '全部' || c.dataset.subcat === filter) ? '' : 'none';
-                });
+                grid.querySelectorAll('.link-card').forEach(c => c.style.display = (t.dataset.sub==='全部' || c.dataset.subcat===t.dataset.sub) ? '' : 'none');
             });
 
             currentLinks.forEach(l => {
@@ -112,12 +104,10 @@ sortedCats.forEach(cat => {
             grid.ondrop = async (e) => {
                 grid.classList.remove('drag-over');
                 const url = e.dataTransfer.getData('text/plain');
-                if (e.target.classList.contains('link-grid')) {
-                    const item = allLinks.find(l => l.url === url);
-                    if (item) {
-                        item.category = cat; render();
-                        apiReq('updateLinksOrder', { link: allLinks }, true);
-                    }
+                const item = allLinks.find(l => l.url === url);
+                if (item) {
+                    item.category = cat; render();
+                    apiReq('updateLinksOrder', { link: allLinks }, true);
                 }
             };
             main.appendChild(sec);
@@ -137,8 +127,8 @@ sortedCats.forEach(cat => {
         card.ondragleave = () => card.classList.remove('drag-insert-before');
         card.ondrop = async (e) => {
             e.preventDefault(); card.classList.remove('drag-insert-before');
-            const url = e.dataTransfer.getData('text/plain');
-            const from = allLinks.findIndex(x => x.url === url), to = allLinks.findIndex(x => x.url === l.url);
+            const draggedUrl = e.dataTransfer.getData('text/plain');
+            const from = allLinks.findIndex(x => x.url === draggedUrl), to = allLinks.findIndex(x => x.url === l.url);
             if (from > -1 && to > -1) {
                 const item = allLinks.splice(from, 1)[0]; item.category = l.category; allLinks.splice(to, 0, item);
                 render(); apiReq('updateLinksOrder', { link: allLinks }, true);
@@ -151,7 +141,6 @@ sortedCats.forEach(cat => {
         const subSelect = document.getElementById('in-subcat');
         subSelect.innerHTML = '<option value="">选择二级小类</option>';
         if (!selectedCat) return;
-        // 查找该大类下所有已定义的二级分类名
         const subCats = [...new Set(allLinks.filter(l => l.category === selectedCat && l.subcategory).map(l => l.subcategory))];
         subCats.forEach(s => {
             const opt = document.createElement('option');
@@ -188,46 +177,22 @@ sortedCats.forEach(cat => {
         } catch (e) { }
     };
 
-function renderCatAdmin() {
-        const box = document.getElementById('cat-list-box');
-        box.innerHTML = '';
-        
+    function renderCatAdmin() {
+        const box = document.getElementById('cat-list-box'); box.innerHTML = '';
         const cats = [...new Set(allLinks.map(l => l.category))];
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
-
         sortedCats.forEach((c, idx) => {
-            // 获取该大类下所有的小分类名
             const subs = [...new Set(allLinks.filter(l => l.category === c && l.subcategory).map(l => l.subcategory))];
-            
             const row = document.createElement('div');
-            row.className = 'cat-admin-container'; // 改为容器包裹
-            row.style.marginBottom = "15px";
-            
-            let subTagsHtml = subs.map(s => `
-                <span class="mini-sub-tag">
-                    ${s} <i class="fas fa-times" onclick="deleteSubCat('${c}', '${s}')"></i>
-                </span>
-            `).join('');
+            row.className = 'cat-admin-container'; row.style.marginBottom = "15px";
+            let subTagsHtml = subs.map(s => `<span class="mini-sub-tag">${s} <i class="fas fa-times" onclick="deleteSubCat('${c}', '${s}')"></i></span>`).join('');
 
-            row.innerHTML = `
-                <div class="cat-admin-row" draggable="true" data-idx="${idx}">
-                    <i class="fas fa-bars drag-handle"></i>
-                    <input type="text" value="${c}" style="flex:1;background:transparent;border:none;color:#fff">
-                    <div class="row-btns">
-                        <button class="btn-mini blue" onclick="addSubCatPrompt('${c}')">+子类</button>
-                        <button class="btn-mini" onclick="renameCat('${c}', this)">改名</button>
-                        <button class="btn-mini red" onclick="deleteCat('${c}')">删除</button>
-                    </div>
-                </div>
-                <div class="cat-admin-subs" style="padding-left: 35px; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap;">
-                    ${subTagsHtml}
-                </div>
-            `;
+            row.innerHTML = `<div class="cat-admin-row" draggable="true"><i class="fas fa-bars drag-handle"></i><input type="text" value="${c}" style="flex:1;background:transparent;border:none;color:#fff"><div class="row-btns"><button class="btn-mini blue" onclick="addSubCatPrompt('${c}')">+子类</button><button class="btn-mini" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div></div><div style="padding-left: 35px; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap;">${subTagsHtml}</div>`;
             
-            // 拖拽逻辑保持...
-            row.querySelector('.cat-admin-row').ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
-            row.querySelector('.cat-admin-row').ondragend = () => row.style.opacity = '1';
+            const adminRow = row.querySelector('.cat-admin-row');
+            adminRow.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
+            adminRow.ondragend = () => row.style.opacity = '1';
             row.ondragover = e => e.preventDefault();
             row.ondrop = async (e) => {
                 e.preventDefault();
@@ -244,6 +209,13 @@ function renderCatAdmin() {
     window.addSubCatPrompt = (mainCat) => {
         const sub = prompt(`为 [${mainCat}] 添加二级小类名称:`);
         if (sub) apiReq('addCategory', { newCategory: mainCat, subcategory: sub.trim() });
+    };
+
+    window.deleteSubCat = async (mainCat, subCat) => {
+        if (!confirm(`确定要删除小分类 "${subCat}" 吗？`)) return;
+        allLinks = allLinks.map(l => (l.category === mainCat && l.subcategory === subCat) ? { ...l, subcategory: "" } : l);
+        render(); renderCatAdmin();
+        apiReq('updateLinksOrder', { link: allLinks }, true);
     };
 
     async function apiReq(action, data, noRefresh = false) {
@@ -285,27 +257,8 @@ function renderCatAdmin() {
         const confirm = () => { const q = inp.value.trim(); if(q && box.querySelector('.tab.active').dataset.type !== 'internal') window.open(currentEngine + encodeURIComponent(q), '_blank'); };
         box.querySelector('.search-trigger-btn').onclick = confirm;
         inp.onkeydown = e => { if(e.key === 'Enter') confirm(); };
-        box.querySelectorAll('.tab').forEach(t => t.onclick = () => {
-            box.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active');
-            const isInt = t.dataset.type === 'internal';
-            if(box.querySelector('.search-engines')) box.querySelector('.search-engines').style.display = isInt ? 'none' : 'flex';
-            inp.placeholder = isInt ? "快速检索站内..." : "输入搜索内容";
-            inp.value = ""; fetchData();
-        });
     }
     setupSearch('.main-search'); setupSearch('.modal-inner-search');
-
-    document.body.addEventListener('click', e => {
-        if(e.target.classList.contains('engine')) {
-            document.querySelectorAll('.engine').forEach(x => x.classList.remove('active'));
-            e.target.classList.add('active'); currentEngine = e.target.dataset.url;
-        }
-    });
-
-    document.querySelectorAll('.modal-overlay').forEach(el => el.onclick = () => {
-        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-        if(document.getElementById('modal-results-area')) document.getElementById('modal-results-area').innerHTML = '';
-    });
 
     document.getElementById('btn-cat-admin').onclick = () => { renderCatAdmin(); document.getElementById('modal-cat').style.display = 'flex'; };
     document.getElementById('btn-add-site').onclick = () => openEdit();
@@ -317,7 +270,7 @@ function renderCatAdmin() {
     document.getElementById('link-form').onsubmit = async function(e) {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(this));
-        if (!data.category) return alert("请选择分类！");
+        if (!data.category) return alert("请选择大分类！");
         data.icon = document.getElementById('prev-img').src;
         if(await apiReq('save', { link: data })) document.getElementById('modal-link').style.display = 'none';
     };
@@ -329,21 +282,3 @@ function renderCatAdmin() {
         document.getElementById('btn-top').style.display = document.getElementById('btn-float-search').style.display = y > 300 ? 'flex' : 'none';
     };
 });
-
-
-window.deleteSubCat = async (mainCat, subCat) => {
-        if (!confirm(`确定要删除小分类 "${subCat}" 吗？该分类下的站点将失去分类标记。`)) return;
-        
-        // 将该大类下所有属于该小类的站点的 subcategory 清空
-        allLinks = allLinks.map(l => {
-            if (l.category === mainCat && l.subcategory === subCat) {
-                return { ...l, subcategory: "" };
-            }
-            return l;
-        });
-
-        render();
-        renderCatAdmin();
-        // 保存更新后的 allLinks
-        apiReq('updateLinksOrder', { link: allLinks }, true);
-    };
