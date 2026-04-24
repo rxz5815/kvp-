@@ -1,6 +1,7 @@
 export async function onRequest(context) {
   const { request, env } = context;
-  const { password, link, action, oldCategory, newCategory, order } = await request.json().catch(() => ({}));
+  // 必须在这里增加 subcategory 的提取
+  const { password, link, action, oldCategory, newCategory, subcategory, order } = await request.json().catch(() => ({}));
 
   if (request.method === 'GET') {
     const links = await env.LINKS_KV.get('all_links');
@@ -13,13 +14,13 @@ export async function onRequest(context) {
 
   if (password !== env.EDIT_PASSWORD) return new Response('Unauthorized', { status: 401 });
 
-  // --- 分类排序保存逻辑 ---
+  // 1. 分类排序
   if (action === 'updateOrder') {
     await env.LINKS_KV.put('category_order', JSON.stringify(order));
     return new Response('OK', { status: 200 });
   }
 
-  // 图标排序保存逻辑
+  // 2. 图标排序
   if (action === 'updateLinksOrder') {
     await env.LINKS_KV.put('all_links', JSON.stringify(link)); 
     return new Response('OK', { status: 200 });
@@ -33,16 +34,15 @@ export async function onRequest(context) {
     links = links.map(l => l.category === oldCategory ? { ...l, category: newCategory } : l);
   } else if (action === 'deleteCategory') {
     links = links.filter(l => l.category !== oldCategory);
-// links.js
-} else if (action === 'addCategory') {
+  } else if (action === 'addCategory') {
+    // 修复点：确保这里能接收前端传来的 subcategory
     links.push({ 
         category: newCategory, 
-        subcategory: subcategory || '', // 接收传过来的小类名
+        subcategory: subcategory || '', 
         title: 'placeholder_hidden', 
         url: 'https://placeholder' + Math.random(), 
         icon: '' 
     });
-}
   } else {
     links = links.filter(l => l.title !== 'placeholder_hidden');
     const idx = links.findIndex(l => l.url === link.url);
