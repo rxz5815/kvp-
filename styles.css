@@ -270,3 +270,46 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     border-left: 4px solid var(--blue) !important;
     transform: translateX(4px);
 }
+
+/* 页脚样式 */
+footer {
+    margin-top: 80px;
+    padding: 40px 0 20px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05); /* 淡淡的一条分割线 */
+}
+
+.footer-content p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5); /* 半透明文字 */
+    margin-bottom: 15px;
+    letter-spacing: 0.5px;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.4);
+    text-decoration: none;
+    font-size: 13px;
+    transition: 0.3s;
+}
+
+.footer-links a:hover {
+    color: var(--red); /* 悬停时使用你网站的主题红色 */
+    transform: translateY(-2px);
+}
+
+/* 适配移动端 */
+@media (max-width: 600px) {
+    .footer-links {
+        gap: 15px;
+    }
+    footer {
+        margin-top: 50px;
+    }
+}
