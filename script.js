@@ -3,40 +3,19 @@ document.addEventListener('DOMContentLoaded', function() {
     let categoryOrder = [];
     let currentEngine = "https://www.baidu.com/s?wd=";
 
-    const yearEl = document.getElementById('current-year');
-    if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-    const grads = [
-        'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
-        'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
-        'linear-gradient(135deg, #202124 0%, #3c4043 100%)',
-        'linear-gradient(135deg, #2c3e50 0%, #4ca1af 80%)',
-        'linear-gradient(45deg, #3d2b56 0%, #8e54e9 80%)',
-        'linear-gradient(135deg, #283048 0%, #859398 80%)',
-        'linear-gradient(45deg, #1e2a38 0%, #5a7fa5 80%)',
-        'linear-gradient(135deg, #192841 0%, #607d8b 80%)',
-        'linear-gradient(45deg, #271f30 0%, #7b4397 80%)',
-        'linear-gradient(135deg, #182c39 0%, #486a78 80%)',
-        'linear-gradient(45deg, #221d2e 0%, #614e77 80%)',
-        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-    ];
+    // --- 修复问题 2: 点击遮罩层关闭弹窗 ---
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.onclick = () => {
+            overlay.parentElement.style.display = 'none';
+        };
+    });
 
     const updateBg = (v, s = true) => {
         const b = document.getElementById('bg-canvas');
         if(v.startsWith('http')) b.style.backgroundImage = `url(${v})`; else b.style.background = v;
         if(s) localStorage.setItem('nav_bg_v18', v);
     };
-    updateBg(localStorage.getItem('nav_bg_v18') || grads[0]);
-
-    document.getElementById('btn-toggle-bg').onclick = () => {
-        let c = localStorage.getItem('nav_bg_v18');
-        updateBg(grads[(grads.indexOf(c) + 1) % grads.length]);
-    };
-
-    document.getElementById('btn-random-bg').onclick = async () => {
-        const res = await fetch(`https://picsum.photos/1920/1080?random=${Math.random()}`);
-        if(res.url) updateBg(res.url);
-    };
+    updateBg(localStorage.getItem('nav_bg_v18') || 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)');
 
     async function fetchData() {
         try {
@@ -69,7 +48,6 @@ document.addEventListener('DOMContentLoaded', function() {
             nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
             hint.innerHTML += `<option value="${cat}">${cat}</option>`;
             
-            // --- 核心修复：定义 currentLinks ---
             const currentLinks = allLinks.filter(l => l.category === cat && l.title !== 'placeholder_hidden');
             const allSubsInCat = allLinks.filter(l => l.category === cat && l.subcategory).map(l => l.subcategory);
             const subCats = ['全部', ...new Set(allSubsInCat)];
@@ -106,7 +84,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 const url = e.dataTransfer.getData('text/plain');
                 const item = allLinks.find(l => l.url === url);
                 if (item) {
-                    item.category = cat; render();
+                    item.category = cat;
+                    // --- 修复问题 6: 拖拽到有小分类激活的区域时，自动分配小分类 ---
+                    const activeSub = sec.querySelector('.sub-tag.active')?.dataset.sub;
+                    if (activeSub && activeSub !== '全部') {
+                        item.subcategory = activeSub;
+                    } else {
+                        item.subcategory = ""; // 如果是“全部”，则清除小分类
+                    }
+                    render();
                     apiReq('updateLinksOrder', { link: allLinks }, true);
                 }
             };
@@ -123,17 +109,6 @@ document.addEventListener('DOMContentLoaded', function() {
         card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
         card.ondragstart = (e) => { e.dataTransfer.setData('text/plain', l.url); card.classList.add('dragging'); };
         card.ondragend = () => card.classList.remove('dragging');
-        card.ondragover = e => { e.preventDefault(); if (document.querySelector('.dragging') !== card) card.classList.add('drag-insert-before'); };
-        card.ondragleave = () => card.classList.remove('drag-insert-before');
-        card.ondrop = async (e) => {
-            e.preventDefault(); card.classList.remove('drag-insert-before');
-            const draggedUrl = e.dataTransfer.getData('text/plain');
-            const from = allLinks.findIndex(x => x.url === draggedUrl), to = allLinks.findIndex(x => x.url === l.url);
-            if (from > -1 && to > -1) {
-                const item = allLinks.splice(from, 1)[0]; item.category = l.category; allLinks.splice(to, 0, item);
-                render(); apiReq('updateLinksOrder', { link: allLinks }, true);
-            }
-        };
         return card;
     }
 
@@ -163,32 +138,31 @@ document.addEventListener('DOMContentLoaded', function() {
         if (l.icon) { prevImg.src = l.icon; prevImg.classList.add('loaded'); } else { prevImg.src = ''; prevImg.classList.remove('loaded'); }
     };
 
-    document.getElementById('in-url').oninput = function() {
-        const val = this.value.trim();
-        const prevImg = document.getElementById('prev-img');
-        if (!val || !val.startsWith('http')) { prevImg.src = ''; prevImg.classList.remove('loaded'); return; }
-        try {
-            const domain = new URL(val).hostname;
-            const iconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-            const tempImg = new Image();
-            tempImg.src = iconUrl;
-            tempImg.onload = () => { prevImg.src = iconUrl; prevImg.classList.add('loaded'); };
-            tempImg.onerror = () => { prevImg.src = ''; prevImg.classList.remove('loaded'); };
-        } catch (e) { }
-    };
-
+    // 分类管理渲染
     function renderCatAdmin() {
         const box = document.getElementById('cat-list-box'); box.innerHTML = '';
         const cats = [...new Set(allLinks.map(l => l.category))];
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
+        
         sortedCats.forEach((c, idx) => {
             const subs = [...new Set(allLinks.filter(l => l.category === c && l.subcategory).map(l => l.subcategory))];
             const row = document.createElement('div');
             row.className = 'cat-admin-container'; row.style.marginBottom = "15px";
             let subTagsHtml = subs.map(s => `<span class="mini-sub-tag">${s} <i class="fas fa-times" onclick="deleteSubCat('${c}', '${s}')"></i></span>`).join('');
 
-            row.innerHTML = `<div class="cat-admin-row" draggable="true"><i class="fas fa-bars drag-handle"></i><input type="text" value="${c}" style="flex:1;background:transparent;border:none;color:#fff"><div class="row-btns"><button class="btn-mini blue" onclick="addSubCatPrompt('${c}')">+子类</button><button class="btn-mini" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div></div><div style="padding-left: 35px; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap;">${subTagsHtml}</div>`;
+            // 问题5修复：为“改名”增加 purple 类名
+            row.innerHTML = `
+                <div class="cat-admin-row" draggable="true">
+                    <i class="fas fa-bars drag-handle"></i>
+                    <input type="text" value="${c}" style="flex:1;background:transparent;border:none;color:#fff">
+                    <div class="row-btns">
+                        <button class="btn-mini blue" onclick="addSubCatPrompt('${c}')">+子类</button>
+                        <button class="btn-mini purple" onclick="renameCat('${c}', this)">改名</button>
+                        <button class="btn-mini red" onclick="deleteCat('${c}')">删除</button>
+                    </div>
+                </div>
+                <div style="padding-left: 35px; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap;">${subTagsHtml}</div>`;
             
             const adminRow = row.querySelector('.cat-admin-row');
             adminRow.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
@@ -206,9 +180,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // --- 修复问题 3 & 4: 自定义子类弹窗 & 实时渲染 ---
+    let currentAddSubCatParent = "";
     window.addSubCatPrompt = (mainCat) => {
-        const sub = prompt(`为 [${mainCat}] 添加二级小类名称:`);
-        if (sub) apiReq('addCategory', { newCategory: mainCat, subcategory: sub.trim() });
+        currentAddSubCatParent = mainCat;
+        document.getElementById('subcat-modal-title').innerText = `为 [${mainCat}] 添加子类`;
+        document.getElementById('new-subcat-input').value = "";
+        document.getElementById('modal-subcat').style.display = 'flex';
+    };
+
+    document.getElementById('btn-confirm-subcat').onclick = async () => {
+        const subName = document.getElementById('new-subcat-input').value.trim();
+        if (!subName) return;
+        document.getElementById('modal-subcat').style.display = 'none';
+        
+        // 关键点：发送请求并重新获取数据渲染，确保分类管理处显示
+        const success = await apiReq('addCategory', { newCategory: currentAddSubCatParent, subcategory: subName });
+        if (success) {
+            // fetchData 内部会调用 render，但我们手动调用 renderCatAdmin 确保管理界面同步
+            setTimeout(renderCatAdmin, 500); 
+        }
     };
 
     window.deleteSubCat = async (mainCat, subCat) => {
@@ -225,53 +216,73 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST', headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ ...data, password: pwd, action })
         });
-        if(res.ok) { sessionStorage.setItem('auth_pwd_v9', pwd); if(!noRefresh) fetchData(); return true; }
+        if(res.ok) { 
+            sessionStorage.setItem('auth_pwd_v9', pwd); 
+            if(!noRefresh) await fetchData(); 
+            return true; 
+        }
         if(res.status === 401) { alert("密码错误！"); sessionStorage.removeItem('auth_pwd_v9'); }
         return false;
     }
 
-    // 搜索逻辑
+    // --- 修复问题 1: 站内搜索隐藏引擎 ---
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
-        const inp = box.querySelector('.search-input'), resultsArea = document.getElementById('modal-results-area');
+        const inp = box.querySelector('.search-input');
+        const engines = box.querySelector('.search-engines');
+        const tabs = box.querySelectorAll('.tab');
+
+        tabs.forEach(tab => {
+            tab.onclick = () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                // 如果是站内搜索，隐藏引擎，否则显示
+                if (tab.dataset.type === 'internal') {
+                    engines.classList.add('hidden');
+                } else {
+                    engines.classList.remove('hidden');
+                }
+            };
+        });
+
         inp.addEventListener('input', function() {
-            const q = this.value.trim().toLowerCase(), isInt = box.querySelector('.tab.active').dataset.type === 'internal';
+            const q = this.value.trim().toLowerCase();
+            const isInt = box.querySelector('.tab.active').dataset.type === 'internal';
             if(!isInt) return;
             if(!q) { 
-                if(boxSel.includes('modal')) resultsArea.innerHTML = '';
-                else { document.body.classList.remove('is-searching'); document.querySelectorAll('.link-card, section').forEach(el => el.style.display = ''); }
+                document.body.classList.remove('is-searching'); 
+                document.querySelectorAll('.link-card, section').forEach(el => el.style.display = ''); 
                 return;
             }
-            if(boxSel.includes('modal')) {
-                resultsArea.innerHTML = '';
-                allLinks.filter(l => l.title !== 'placeholder_hidden' && l.title.toLowerCase().includes(q)).forEach(l => resultsArea.appendChild(createCard(l)));
-            } else {
-                document.body.classList.add('is-searching');
-                document.querySelectorAll('.link-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? '' : 'none');
-                document.querySelectorAll('section').forEach(s => {
-                    const has = Array.from(s.querySelectorAll('.link-card')).some(c => c.style.display !== 'none');
-                    s.style.display = has ? '' : 'none';
-                });
-            }
+            document.body.classList.add('is-searching');
+            document.querySelectorAll('.link-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? '' : 'none');
+            document.querySelectorAll('section').forEach(s => {
+                const has = Array.from(s.querySelectorAll('.link-card')).some(c => c.style.display !== 'none');
+                s.style.display = has ? '' : 'none';
+            });
         });
-        const confirm = () => { const q = inp.value.trim(); if(q && box.querySelector('.tab.active').dataset.type !== 'internal') window.open(currentEngine + encodeURIComponent(q), '_blank'); };
+
+        const confirm = () => { 
+            const q = inp.value.trim(); 
+            if(q && box.querySelector('.tab.active').dataset.type !== 'internal') 
+                window.open(currentEngine + encodeURIComponent(q), '_blank'); 
+        };
         box.querySelector('.search-trigger-btn').onclick = confirm;
         inp.onkeydown = e => { if(e.key === 'Enter') confirm(); };
     }
-    setupSearch('.main-search'); setupSearch('.modal-inner-search');
+    setupSearch('.main-search');
+    setupSearch('.modal-inner-search');
 
     document.getElementById('btn-cat-admin').onclick = () => { renderCatAdmin(); document.getElementById('modal-cat').style.display = 'flex'; };
     document.getElementById('btn-add-site').onclick = () => openEdit();
     window.deleteSite = (e, u) => { e.stopPropagation(); if(confirm("确定删除吗？")) apiReq('delete', { link: {url:u} }); };
     window.renameCat = (o, b) => apiReq('renameCategory', { oldCategory: o, newCategory: b.closest('.cat-admin-row').querySelector('input').value });
     window.deleteCat = (c) => confirm(`删除分类 "${c}"？`) && apiReq('deleteCategory', { oldCategory: c });
-    window.addNewCategory = () => { const n = document.getElementById('new-cat-input').value.trim(); if(n) apiReq('addCategory', { newCategory: n }).then(() => document.getElementById('new-cat-input').value = ''); };
+    window.addNewCategory = () => { const n = document.getElementById('new-cat-input').value.trim(); if(n) apiReq('addCategory', { newCategory: n }).then(() => { document.getElementById('new-cat-input').value = ''; renderCatAdmin(); }); };
 
     document.getElementById('link-form').onsubmit = async function(e) {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(this));
-        if (!data.category) return alert("请选择大分类！");
-        data.icon = document.getElementById('prev-img').src;
         if(await apiReq('save', { link: data })) document.getElementById('modal-link').style.display = 'none';
     };
 
