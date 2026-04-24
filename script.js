@@ -3,11 +3,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let categoryOrder = [];
     let currentEngine = "https://www.baidu.com/s?wd=";
 
-    // --- 恢复：年份自动更新 ---
+    // --- 自动年份更新 ---
     const yearEl = document.getElementById('current-year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    // --- 恢复：渐变背景列表 ---
+    // --- 背景切换逻辑 (完整保留) ---
     const grads = [
         'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
         'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
@@ -23,27 +23,16 @@ document.addEventListener('DOMContentLoaded', function() {
         'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
     ];
 
-    // --- 恢复：背景更新逻辑 ---
     const updateBg = (v, s = true) => {
         const b = document.getElementById('bg-canvas');
-        if(v.startsWith('http')) {
-            b.style.backgroundImage = `url(${v})`;
-            b.style.backgroundSize = 'cover';
-        } else {
-            b.style.background = v;
-        }
+        if(v.startsWith('http')) b.style.backgroundImage = `url(${v})`; else b.style.background = v;
         if(s) localStorage.setItem('nav_bg_v18', v);
     };
-    
-    // 初始化背景
     updateBg(localStorage.getItem('nav_bg_v18') || grads[0]);
 
-    // --- 恢复：背景切换按钮事件 ---
     document.getElementById('btn-toggle-bg').onclick = () => {
         let c = localStorage.getItem('nav_bg_v18');
-        let nextIdx = (grads.indexOf(c) + 1) % grads.length;
-        if (nextIdx < 0) nextIdx = 0; // 如果当前是图片，切换回第一个渐变
-        updateBg(grads[nextIdx]);
+        updateBg(grads[(grads.indexOf(c) + 1) % grads.length]);
     };
 
     document.getElementById('btn-random-bg').onclick = async () => {
@@ -51,11 +40,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if(res.url) updateBg(res.url);
     };
 
-    // --- 修复问题 2: 点击遮罩层关闭弹窗 ---
+    // --- 修复问题2: 点击遮罩层（阴影）关闭弹窗 ---
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.onclick = () => {
-            overlay.parentElement.style.display = 'none';
-        };
+        overlay.onclick = () => { overlay.parentElement.style.display = 'none'; };
     });
 
     async function fetchData() {
@@ -118,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 grid.appendChild(card);
             });
 
+            // --- 修复问题 6: 跨分类拖拽逻辑 ---
             grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
             grid.ondragleave = () => grid.classList.remove('drag-over');
             grid.ondrop = async (e) => {
@@ -126,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const item = allLinks.find(l => l.url === url);
                 if (item) {
                     item.category = cat;
-                    // --- 修复问题 6: 拖拽逻辑 ---
+                    // 如果当前有激活的小分类，拖入时自动归属
                     const activeSub = sec.querySelector('.sub-tag.active')?.dataset.sub;
                     item.subcategory = (activeSub && activeSub !== '全部') ? activeSub : "";
                     render();
@@ -137,6 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // --- 恢复功能1: 创建卡片并绑定完整的排序和拖拽逻辑 ---
     function createCard(l) {
         const card = document.createElement('div');
         card.className = 'link-card'; card.draggable = true;
@@ -144,8 +133,27 @@ document.addEventListener('DOMContentLoaded', function() {
         card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
         card.onclick = () => window.open(l.url, '_blank');
         card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
+        
         card.ondragstart = (e) => { e.dataTransfer.setData('text/plain', l.url); card.classList.add('dragging'); };
         card.ondragend = () => card.classList.remove('dragging');
+        
+        // 首页卡片互相排序逻辑
+        card.ondragover = e => { e.preventDefault(); if (document.querySelector('.dragging') !== card) card.classList.add('drag-insert-before'); };
+        card.ondragleave = () => card.classList.remove('drag-insert-before');
+        card.ondrop = async (e) => {
+            e.preventDefault(); 
+            card.classList.remove('drag-insert-before');
+            const draggedUrl = e.dataTransfer.getData('text/plain');
+            const from = allLinks.findIndex(x => x.url === draggedUrl);
+            const to = allLinks.findIndex(x => x.url === l.url);
+            if (from > -1 && to > -1) {
+                const item = allLinks.splice(from, 1)[0]; 
+                item.category = l.category; // 保持目标分类
+                allLinks.splice(to, 0, item);
+                render(); 
+                apiReq('updateLinksOrder', { link: allLinks }, true);
+            }
+        };
         return card;
     }
 
@@ -175,31 +183,33 @@ document.addEventListener('DOMContentLoaded', function() {
         if (l.icon) { prevImg.src = l.icon; prevImg.classList.add('loaded'); } else { prevImg.src = ''; prevImg.classList.remove('loaded'); }
     };
 
-    // 分类管理渲染
+    // --- 恢复功能2: 网址输入时自动抓取图标 ---
+    document.getElementById('in-url').oninput = function() {
+        const val = this.value.trim();
+        const prevImg = document.getElementById('prev-img');
+        if (!val || !val.startsWith('http')) { prevImg.src = ''; prevImg.classList.remove('loaded'); return; }
+        try {
+            const domain = new URL(val).hostname;
+            const iconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            const tempImg = new Image();
+            tempImg.src = iconUrl;
+            tempImg.onload = () => { prevImg.src = iconUrl; prevImg.classList.add('loaded'); };
+        } catch (e) { }
+    };
+
     function renderCatAdmin() {
         const box = document.getElementById('cat-list-box'); box.innerHTML = '';
         const cats = [...new Set(allLinks.map(l => l.category))];
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
-        
         sortedCats.forEach((c, idx) => {
             const subs = [...new Set(allLinks.filter(l => l.category === c && l.subcategory).map(l => l.subcategory))];
             const row = document.createElement('div');
             row.className = 'cat-admin-container'; row.style.marginBottom = "15px";
             let subTagsHtml = subs.map(s => `<span class="mini-sub-tag">${s} <i class="fas fa-times" onclick="deleteSubCat('${c}', '${s}')"></i></span>`).join('');
 
-            // 问题5修复：按钮颜色
-            row.innerHTML = `
-                <div class="cat-admin-row" draggable="true">
-                    <i class="fas fa-bars drag-handle"></i>
-                    <input type="text" value="${c}" style="flex:1;background:transparent;border:none;color:#fff">
-                    <div class="row-btns">
-                        <button class="btn-mini blue" onclick="addSubCatPrompt('${c}')">+子类</button>
-                        <button class="btn-mini purple" onclick="renameCat('${c}', this)">改名</button>
-                        <button class="btn-mini red" onclick="deleteCat('${c}')">删除</button>
-                    </div>
-                </div>
-                <div style="padding-left: 35px; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap;">${subTagsHtml}</div>`;
+            // 修复问题5: 改名按钮增加颜色类名 purple
+            row.innerHTML = `<div class="cat-admin-row" draggable="true"><i class="fas fa-bars drag-handle"></i><input type="text" value="${c}" style="flex:1;background:transparent;border:none;color:#fff"><div class="row-btns"><button class="btn-mini blue" onclick="addSubCatPrompt('${c}')">+子类</button><button class="btn-mini purple" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div></div><div style="padding-left: 35px; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap;">${subTagsHtml}</div>`;
             
             const adminRow = row.querySelector('.cat-admin-row');
             adminRow.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
@@ -217,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- 问题 3 & 4: 自定义子类弹窗 ---
+    // --- 修复问题 3 & 4: 自定义添加二级子类弹窗 & 实时显示 ---
     let currentAddSubCatParent = "";
     window.addSubCatPrompt = (mainCat) => {
         currentAddSubCatParent = mainCat;
@@ -227,12 +237,11 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     document.getElementById('btn-confirm-subcat').onclick = async () => {
-        const subName = document.getElementById('new-subcat-input').value.trim();
-        if (!subName) return;
-        document.getElementById('modal-subcat').style.display = 'none';
-        const success = await apiReq('addCategory', { newCategory: currentAddSubCatParent, subcategory: subName });
-        if (success) {
-            setTimeout(renderCatAdmin, 500); 
+        const sub = document.getElementById('new-subcat-input').value.trim();
+        if (sub) {
+            document.getElementById('modal-subcat').style.display = 'none';
+            await apiReq('addCategory', { newCategory: currentAddSubCatParent, subcategory: sub });
+            setTimeout(renderCatAdmin, 500); // 确保刷新管理界面
         }
     };
 
@@ -250,67 +259,68 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST', headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ ...data, password: pwd, action })
         });
-        if(res.ok) { 
-            sessionStorage.setItem('auth_pwd_v9', pwd); 
-            if(!noRefresh) await fetchData(); 
-            return true; 
-        }
+        if(res.ok) { sessionStorage.setItem('auth_pwd_v9', pwd); if(!noRefresh) fetchData(); return true; }
         if(res.status === 401) { alert("密码错误！"); sessionStorage.removeItem('auth_pwd_v9'); }
         return false;
     }
 
-    // --- 问题 1: 搜索逻辑 ---
+    // --- 修复功能4 & 问题1: 搜索逻辑修复 ---
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
-        const inp = box.querySelector('.search-input');
+        const inp = box.querySelector('.search-input'), resultsArea = document.getElementById('modal-results-area');
         const engines = box.querySelector('.search-engines');
-        const tabs = box.querySelectorAll('.tab');
 
-        tabs.forEach(tab => {
+        // 切换 Tab 时显示/隐藏搜索引擎
+        box.querySelectorAll('.tab').forEach(tab => {
             tab.onclick = () => {
-                tabs.forEach(t => t.classList.remove('active'));
+                box.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 if (tab.dataset.type === 'internal') {
-                    if(engines) engines.classList.add('hidden');
+                    if(engines) engines.classList.add('hidden'); // 问题1：站内隐藏搜索引擎
                 } else {
                     if(engines) engines.classList.remove('hidden');
                 }
             };
         });
 
-        const handleSearchInput = function() {
-            const q = this.value.trim().toLowerCase();
-            const activeTab = box.querySelector('.tab.active');
-            if(!activeTab || activeTab.dataset.type !== 'internal') return;
+        inp.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase(), isInt = box.querySelector('.tab.active').dataset.type === 'internal';
+            if(!isInt) return;
             
-            if(!q) { 
-                document.body.classList.remove('is-searching'); 
-                document.querySelectorAll('.link-card, section').forEach(el => el.style.display = ''); 
-                return;
+            // 如果是侧边栏搜索弹窗，将结果渲染到弹窗容器内 (修复功能4)
+            if(boxSel.includes('modal')) {
+                resultsArea.innerHTML = '';
+                if(!q) return;
+                allLinks.filter(l => l.title !== 'placeholder_hidden' && l.title.toLowerCase().includes(q)).forEach(l => {
+                    const c = createCard(l);
+                    resultsArea.appendChild(c);
+                });
+            } else {
+                // 首页搜索逻辑
+                if(!q) { 
+                    document.body.classList.remove('is-searching'); 
+                    document.querySelectorAll('.link-card, section').forEach(el => el.style.display = ''); 
+                    return;
+                }
+                document.body.classList.add('is-searching');
+                document.querySelectorAll('.link-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? '' : 'none');
+                document.querySelectorAll('section').forEach(s => {
+                    const has = Array.from(s.querySelectorAll('.link-card')).some(c => c.style.display !== 'none');
+                    s.style.display = has ? '' : 'none';
+                });
             }
-            document.body.classList.add('is-searching');
-            document.querySelectorAll('.link-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? '' : 'none');
-            document.querySelectorAll('section').forEach(s => {
-                const has = Array.from(s.querySelectorAll('.link-card')).some(c => c.style.display !== 'none');
-                s.style.display = has ? '' : 'none';
-            });
-        };
-
-        inp.addEventListener('input', handleSearchInput);
-
+        });
+        
         const confirmSearch = () => { 
             const q = inp.value.trim(); 
-            const activeTab = box.querySelector('.tab.active');
-            if(q && activeTab && activeTab.dataset.type !== 'internal') {
-                const currentActiveEngine = box.querySelector('.engine.active')?.dataset.url || currentEngine;
-                window.open(currentActiveEngine + encodeURIComponent(q), '_blank'); 
+            if(q && box.querySelector('.tab.active').dataset.type !== 'internal') {
+                const activeUrl = box.querySelector('.engine.active')?.dataset.url || currentEngine;
+                window.open(activeUrl + encodeURIComponent(q), '_blank'); 
             }
         };
-
         box.querySelector('.search-trigger-btn').onclick = confirmSearch;
         inp.onkeydown = e => { if(e.key === 'Enter') confirmSearch(); };
-
-        // 引擎切换逻辑
+        
         if(engines) {
             engines.querySelectorAll('.engine').forEach(eng => {
                 eng.onclick = () => {
@@ -320,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
-    setupSearch('.main-search');
+    setupSearch('.main-search'); 
     setupSearch('.modal-inner-search');
 
     document.getElementById('btn-cat-admin').onclick = () => { renderCatAdmin(); document.getElementById('modal-cat').style.display = 'flex'; };
@@ -328,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.deleteSite = (e, u) => { e.stopPropagation(); if(confirm("确定删除吗？")) apiReq('delete', { link: {url:u} }); };
     window.renameCat = (o, b) => apiReq('renameCategory', { oldCategory: o, newCategory: b.closest('.cat-admin-row').querySelector('input').value });
     window.deleteCat = (c) => confirm(`删除分类 "${c}"？`) && apiReq('deleteCategory', { oldCategory: c });
-    window.addNewCategory = () => { const n = document.getElementById('new-cat-input').value.trim(); if(n) apiReq('addCategory', { newCategory: n }).then(() => { document.getElementById('new-cat-input').value = ''; renderCatAdmin(); }); };
+    window.addNewCategory = () => { const n = document.getElementById('new-cat-input').value.trim(); if(n) apiReq('addCategory', { newCategory: n }).then(() => document.getElementById('new-cat-input').value = ''); };
 
     document.getElementById('link-form').onsubmit = async function(e) {
         e.preventDefault();
@@ -337,11 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     document.getElementById('btn-top').onclick = () => window.scrollTo({top:0, behavior:'smooth'});
-    document.getElementById('btn-float-search').onclick = () => { 
-        document.getElementById('modal-search').style.display='flex'; 
-        setTimeout(() => document.querySelector('.modal-inner-search .search-input').focus(), 100); 
-    };
-    
+    document.getElementById('btn-float-search').onclick = () => { document.getElementById('modal-search').style.display='flex'; setTimeout(() => document.querySelector('.modal-inner-search .search-input').focus(), 100); };
     window.onscroll = () => {
         const y = window.scrollY;
         document.getElementById('btn-top').style.display = document.getElementById('btn-float-search').style.display = y > 300 ? 'flex' : 'none';
