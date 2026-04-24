@@ -19,8 +19,22 @@ document.addEventListener('DOMContentLoaded', function() {
         'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'  // 渐变紫
     ];
 
-            // 图片背景
-        document.getElementById('btn-random-bg').onclick = async () => {
+            // 切换背景
+    const updateBg = (val, save = true) => {
+        const bg = document.getElementById('bg-canvas');
+        if(val.startsWith('http')) bg.style.backgroundImage = `url(${val})`;
+        else bg.style.background = val;
+        if(save) localStorage.setItem('nav_bg_v18', val);
+    };
+    updateBg(localStorage.getItem('nav_bg_v18') || grads[0]);
+
+    document.getElementById('btn-toggle-bg').onclick = () => {
+        let curr = localStorage.getItem('nav_bg_v18');
+        let nextIdx = (grads.indexOf(curr) + 1) % grads.length;
+        updateBg(grads[nextIdx]);
+    };
+
+    document.getElementById('btn-random-bg').onclick = async () => {
         const res = await fetch(`https://picsum.photos/1920/1080?random=${Math.random()}`);
         if(res.url) updateBg(res.url);
     };
