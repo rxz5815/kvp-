@@ -63,7 +63,7 @@ section {
     padding: 10px; 
     margin-left: -10px;                                    
     margin-right: -10px; 
-    border-radius: 18px;
+    border-radius: 12px;
     border: 2px dashed transparent; 
     transition: 全部 0.3s ease;
 }
@@ -189,7 +189,7 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
 .side-btn:hover { background: var(--red); transform: translateY(-3px); }
 
 
-/* 自定义简介气泡：支持自动换行 */
+/* 首页图标下方显示汽泡：支持自动换行 */
 .link-card[data-desc]::after {
     content: attr(data-desc);
     position: absolute;
@@ -207,8 +207,8 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     pointer-events: none;
     transition: opacity 0.15s;
 
-    /* --- 核心修复：换行逻辑 --- */
-    width: 115px;           /* 设置一个固定宽度，超过就换行 */
+    /* --- 换行逻辑 --- */
+    width: 100px;           /* 设置一个固定宽度，超过就换行 */
     white-space: normal;    /* 允许文字自然换行 */
     word-wrap: break-word;  /* 强制长单词/无空格字符换行 */
     line-height: 1.5;       /* 增加行高，多行时阅读更舒适 */
