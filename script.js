@@ -335,13 +335,28 @@ function createCard(l) {
             row.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
             row.ondragend = () => row.style.opacity = '1';
             row.ondragover = e => e.preventDefault();
-            row.ondrop = async (e) => {
-                const from = e.dataTransfer.getData('idx');
+row.ondrop = async (e) => {
+                e.preventDefault();
+                const from = parseInt(e.dataTransfer.getData('idx'));
                 const to = idx;
-                sortedCats.splice(to, 0, sortedCats.splice(from, 1)[0]);
-                categoryOrder = sortedCats;
-                await apiReq('updateOrder', { order: categoryOrder });
-                renderCatAdmin();
+                
+                // 1. 重新计算新的分类顺序数组
+                const newOrder = [...sortedCats];
+                const [movedItem] = newOrder.splice(from, 1);
+                newOrder.splice(to, 0, movedItem);
+                
+                // 2. 同步更新全局变量
+                categoryOrder = newOrder;
+                
+                // 3. 保存到服务器
+                const success = await apiReq('updateOrder', { order: categoryOrder });
+                
+                if (success) {
+                    // 4. 核心：重新获取数据并触发首页 render()
+                    await fetchData(); 
+                    // 5. 重新刷新分类管理弹窗列表
+                    renderCatAdmin();
+                }
             };
             box.appendChild(row);
         });
