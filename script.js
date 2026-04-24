@@ -263,14 +263,24 @@ window.openEdit = (l = {}) => {
     document.getElementById('modal-link').style.display = 'flex';
     document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
     document.getElementById('in-desc').value = l.desc || '';
-    document.getElementById('cat-hint').value = l.category || '';
-    document.getElementById('in-subcat').value = l.subcategory || '';   // 新增：反显二级分类
-        const urlInput = document.getElementById('in-url');
-        const prevImg = document.getElementById('prev-img');
-        urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
-        if (l.icon && l.icon !== '') { prevImg.src = l.icon; prevImg.classList.add('loaded'); }
-        else { prevImg.src = ''; prevImg.classList.remove('loaded'); }
-    };
+    
+    // 1. 设置大分类
+    const catSelect = document.getElementById('cat-hint');
+    catSelect.value = l.category || '';
+    
+    // 2. 根据大分类加载二级小类，并选中当前的值
+    updateSubcatDropdown(l.category || '', l.subcategory || '');
+    
+    // 3. 网址和图标
+    const urlInput = document.getElementById('in-url');
+    urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
+    const prevImg = document.getElementById('prev-img');
+    if (l.icon && l.icon !== '') {
+        prevImg.src = l.icon; prevImg.classList.add('loaded');
+    } else {
+        prevImg.src = ''; prevImg.classList.remove('loaded');
+    }
+};
 
     document.getElementById('in-url').oninput = function() {
         const val = this.value.trim();
@@ -286,11 +296,25 @@ window.openEdit = (l = {}) => {
         } catch (e) { }
     };
 
-    document.getElementById('btn-cat-admin').onclick = () => { renderCatAdmin(); document.getElementById('modal-cat').style.display = 'flex'; };
+// 重新绑定，确保互不干扰
+document.getElementById('btn-cat-admin').addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    renderCatAdmin();
+    document.getElementById('modal-cat').style.display = 'flex';
+});
 
+document.getElementById('btn-add-site').addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openEdit();
+});
+
+    
     function renderCatAdmin() {
         const box = document.getElementById('cat-list-box');
         box.innerHTML = '';
+         // 提取所有大类
         const cats = [...new Set(allLinks.map(l => l.category))];
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
@@ -298,7 +322,17 @@ window.openEdit = (l = {}) => {
         sortedCats.forEach((c, idx) => {
             const row = document.createElement('div');
             row.className = 'cat-admin-row'; row.draggable = true;
-            row.innerHTML = `<i class="fas fa-bars drag-handle"></i><input type="text" value="${c}"><div class="row-btns"><button class="btn-mini blue" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div>`;
+        // “子类”管理按钮
+        row.innerHTML = `
+            <i class="fas fa-bars drag-handle"></i>
+            <input type="text" value="${c}" style="flex:1">
+            <div class="row-btns">
+                <button class="btn-mini blue" onclick="addSubCatPrompt('${c}')">+子类</button>
+                <button class="btn-mini" onclick="renameCat('${c}', this)">改名</button>
+                <button class="btn-mini red" onclick="deleteCat('${c}')">删除</button>
+            </div>
+        `;
+            
             row.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
             row.ondragend = () => row.style.opacity = '1';
             row.ondragover = e => e.preventDefault();
@@ -334,6 +368,18 @@ window.openEdit = (l = {}) => {
         if(res.status === 401) { alert("密码错误！"); sessionStorage.removeItem('auth_pwd_v9'); }
         return false;
     }
+
+    // 辅助函数：弹出窗口添加二级小类
+    window.addSubCatPrompt = (mainCat) => {
+        const subName = prompt(`为 [${mainCat}] 添加一个新的二级小类名称:`);
+        if (subName && subName.trim() !== '') {
+            // 发送给后端，增加一个带有大类和小类标记的占位站点
+            apiReq('addCategory', { 
+                newCategory: mainCat, 
+                subcategory: subName.trim() 
+            });
+        }
+    };
 
     window.deleteSite = (e, u) => { e.stopPropagation(); if(confirm("确定删除吗？")) apiReq('delete', { link: {url:u} }); };
     window.renameCat = (old, btn) => apiReq('renameCategory', { oldCategory: old, newCategory: btn.closest('.cat-admin-row').querySelector('input').value });
