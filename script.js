@@ -91,15 +91,22 @@ async function fetchData() {
             grid.ondragleave = function() {
                 grid.classList.remove('drag-over'); // 移出时隐藏
             };
-            grid.ondrop = async function(e) {
-                grid.classList.remove('drag-over'); // 放下时隐藏
-                const url = e.dataTransfer.getData('text/plain');
-                const item = allLinks.find(l => l.url === url);
-                if(item && item.category !== cat) {
-                    item.category = cat;
-                    await apiReq('save', { link: item });
-                }
-            };
+
+grid.ondrop = async function(e) {
+    grid.classList.remove('drag-over');
+    const url = e.dataTransfer.getData('text/plain');
+    
+    // 如果 drop 的目标是 grid 本身（说明拖到了空白处，而不是某个卡片上）
+    if (e.target.classList.contains('link-grid')) {
+        const itemIdx = allLinks.findIndex(l => l.url === url);
+        if (itemIdx > -1) {
+            const item = allLinks.splice(itemIdx, 1)[0];
+            item.category = cat; // 更改分类
+            allLinks.push(item); // 放到该分类的最后面
+            await apiReq('updateLinksOrder', { link: allLinks });
+        }
+    }
+};
             // --- 拖拽逻辑结束 ---
 
             // 下面是渲染卡片的逻辑，不要删
