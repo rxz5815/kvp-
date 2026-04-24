@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function createCard(l) {
+function createCard(l) {
         const card = document.createElement('div');
         card.className = 'link-card'; 
         card.draggable = true;
@@ -185,13 +185,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const item = allLinks.splice(draggedIdx, 1)[0];
                 item.category = l.category; 
                 allLinks.splice(targetIdx, 0, item);
-                render(); // 修复：必须加上 render() 
+                render(); 
                 apiReq('updateLinksOrder', { link: allLinks }, true);
             }
         };
         return card;
     }
-
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
         const inp = box.querySelector('.search-input');
