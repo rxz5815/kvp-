@@ -51,31 +51,88 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) { render(); }
     }
     fetchData();
-
+    
+// 页面渲染 (升级版：支持二级小类标签)
     function render() {
         const main = document.getElementById('main-content');
         const nav = document.getElementById('category-ul');
         const hint = document.getElementById('cat-hint');
         main.innerHTML = ''; nav.innerHTML = ''; hint.innerHTML = '<option value="">选择分类</option>';
 
+        // 1. 数据按大类分组
         const grouped = allLinks.reduce((acc, l) => {
             if (!acc[l.category]) acc[l.category] = [];
             if (l.title !== 'placeholder_hidden') acc[l.category].push(l);
             return acc;
         }, {});
 
+        // 2. 确定大类显示顺序
         let cats = Object.keys(grouped);
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
 
+        // 3. 循环渲染每个大类
         sortedCats.forEach(cat => {
             nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
             hint.innerHTML += `<option value="${cat}">${cat}</option>`;
+            
             const sec = document.createElement('section');
             sec.id = cat;
-            sec.innerHTML = `<h2 class="category-title">${cat}</h2><div class="link-grid" data-cat="${cat}"></div>`;
-            const grid = sec.querySelector('.link-grid');
             
+            // --- 核心：提取并生成二级分类标签 (Subcategories) ---
+            const currentLinks = grouped[cat] || [];
+            // 获取当前大类下所有去重后的二级分类名，过滤掉空的
+            const subCats = ['全部', ...new Set(currentLinks.filter(l => l.subcategory && l.subcategory.trim() !== '').map(l => l.subcategory))];
+            
+            let subBarHtml = '';
+            // 只有当存在真正的二级分类时，才显示 "|" 和标签栏
+            if (subCats.length > 1) { 
+                subBarHtml = `<div class="category-divider">|</div><div class="subcategory-bar">`;
+                subCats.forEach((sub, idx) => {
+                    subBarHtml += `<span class="sub-tag ${idx===0?'active':''}" data-sub="${sub}">${sub}</span>`;
+                });
+                subBarHtml += `</div>`;
+            }
+
+            // 构建大类头部结构
+            sec.innerHTML = `
+                <div class="category-header">
+                    <h2 class="category-title">${cat}</h2>
+                    ${subBarHtml}
+                </div>
+                <div class="link-grid" data-cat="${cat}"></div>
+            `;
+            
+            const grid = sec.querySelector('.link-grid');
+            const tags = sec.querySelectorAll('.sub-tag');
+
+            // --- 标签切换过滤逻辑 ---
+            tags.forEach(tag => {
+                tag.onclick = () => {
+                    tags.forEach(t => t.classList.remove('active'));
+                    tag.classList.add('active');
+                    const filterValue = tag.dataset.sub;
+                    
+                    grid.querySelectorAll('.link-card').forEach(card => {
+                        const cardSub = card.getAttribute('data-subcat') || '';
+                        if (filterValue === '全部' || cardSub === filterValue) {
+                            card.style.display = ''; // 显示
+                        } else {
+                            card.style.display = 'none'; // 隐藏
+                        }
+                    });
+                };
+            });
+
+            // --- 渲染卡片并绑定拖拽 ---
+            currentLinks.forEach(l => {
+                const card = createCard(l);
+                // 给卡片打上二级分类标记，方便上面过滤使用
+                if (l.subcategory) card.setAttribute('data-subcat', l.subcategory);
+                grid.appendChild(card);
+            });
+            
+          // --- 拖拽逻辑 ---
             grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
             grid.ondragleave = () => grid.classList.remove('drag-over');
 
@@ -203,11 +260,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('modal-results-area').innerHTML = '';
     });
 
-    window.openEdit = (l = {}) => {
-        document.getElementById('modal-link').style.display = 'flex';
-        document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
-        document.getElementById('in-desc').value = l.desc || '';
-        document.getElementById('cat-hint').value = l.category || '';
+window.openEdit = (l = {}) => {
+    document.getElementById('modal-link').style.display = 'flex';
+    document.getElementById('in-title').value = (l.title === 'placeholder_hidden' ? '' : l.title) || '';
+    document.getElementById('in-desc').value = l.desc || '';
+    document.getElementById('cat-hint').value = l.category || '';
+    document.getElementById('in-subcat').value = l.subcategory || '';   // 新增：反显二级分类
         const urlInput = document.getElementById('in-url');
         const prevImg = document.getElementById('prev-img');
         urlInput.value = (l.url?.includes('placeholder') ? '' : l.url) || '';
