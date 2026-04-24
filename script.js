@@ -321,43 +321,55 @@ function createCard(l) {
         document.getElementById('modal-cat').style.display = 'flex';
     };
 
-    function renderCatAdmin() {
+function renderCatAdmin() {
         const box = document.getElementById('cat-list-box');
         box.innerHTML = '';
+        
+        // 1. 获取当前所有分类
         const cats = [...new Set(allLinks.map(l => l.category))];
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
 
         sortedCats.forEach((c, idx) => {
             const row = document.createElement('div');
-            row.className = 'cat-admin-row'; row.draggable = true;
+            row.className = 'cat-admin-row'; 
+            row.draggable = true;
             row.innerHTML = `<i class="fas fa-bars drag-handle"></i><input type="text" value="${c}"><div class="row-btns"><button class="btn-mini blue" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div>`;
-            row.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
+            
+            // 拖拽开始
+            row.ondragstart = (e) => { 
+                e.dataTransfer.setData('idx', idx); 
+                row.style.opacity = '0.5'; 
+            };
+            
             row.ondragend = () => row.style.opacity = '1';
             row.ondragover = e => e.preventDefault();
-row.ondrop = async (e) => {
+            
+            // 核心修改：放下逻辑
+            row.ondrop = async (e) => {
                 e.preventDefault();
                 const from = parseInt(e.dataTransfer.getData('idx'));
                 const to = idx;
                 
-                // 1. 重新计算新的分类顺序数组
+                if (from === to) return; // 位置没变，不处理
+
+                // --- 步骤 A：立即更新本地数据 ---
                 const newOrder = [...sortedCats];
                 const [movedItem] = newOrder.splice(from, 1);
                 newOrder.splice(to, 0, movedItem);
                 
-                // 2. 同步更新全局变量
+                // 更新全局变量
                 categoryOrder = newOrder;
                 
-                // 3. 保存到服务器
-                const success = await apiReq('updateOrder', { order: categoryOrder });
-                
-                if (success) {
-                    // 4. 核心：重新获取数据并触发首页 render()
-                    await fetchData(); 
-                    // 5. 重新刷新分类管理弹窗列表
-                    renderCatAdmin();
-                }
+                // --- 步骤 B：立即刷新界面（实现“丝滑”拖拽） ---
+                render();           // 刷新首页
+                renderCatAdmin();    // 刷新弹窗内部列表
+
+                // --- 步骤 C：使用你现有的 apiReq 异步保存到后台 ---
+                // apiReq 内部会自动检查 sessionStorage，如果已登录则不会弹窗
+                apiReq('updateOrder', { order: categoryOrder });
             };
+            
             box.appendChild(row);
         });
     }
