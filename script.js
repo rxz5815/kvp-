@@ -64,20 +64,24 @@ document.addEventListener('DOMContentLoaded', function() {
         let cats = Object.keys(grouped);
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
-
-        sortedCats.forEach(cat => {
+        
+sortedCats.forEach(cat => {
             nav.innerHTML += `<li><a href="#${cat}">${cat}</a></li>`;
             hint.innerHTML += `<option value="${cat}">${cat}</option>`;
             
-            const currentLinks = grouped[cat] || [];
-            // 提取二级分类标签，包含那些在 addCategory 里的占位子类
-            const allSubsInCat = allLinks.filter(l => l.category === cat && l.subcategory).map(l => l.subcategory);
+            // --- 关键修复：直接从 allLinks 提取该大类下所有的二级分类（包括隐藏占位符里的） ---
+            const allSubsInCat = allLinks
+                .filter(l => l.category === cat && l.subcategory && l.subcategory.trim() !== '')
+                .map(l => l.subcategory);
             const subCats = ['全部', ...new Set(allSubsInCat)];
             
             let subBarHtml = '';
+            // 只要 subCats 长度大于 1（即除了“全部”外还有别的），就显示标签栏
             if (subCats.length > 1) { 
                 subBarHtml = `<div class="category-divider">|</div><div class="subcategory-bar">`;
-                subCats.forEach((s, i) => subBarHtml += `<span class="sub-tag ${i===0?'active':''}" data-sub="${s}">${s}</span>`);
+                subCats.forEach((s, i) => {
+                    subBarHtml += `<span class="sub-tag ${i===0?'active':''}" data-sub="${s}">${s}</span>`;
+                });
                 subBarHtml += `</div>`;
             }
 
@@ -85,6 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sec.id = cat;
             sec.innerHTML = `<div class="category-header"><h2 class="category-title">${cat}</h2>${subBarHtml}</div><div class="link-grid" data-cat="${cat}"></div>`;
             
+            // 渲染卡片逻辑
             const grid = sec.querySelector('.link-grid');
             const tags = sec.querySelectorAll('.sub-tag');
 
@@ -183,20 +188,51 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) { }
     };
 
-    function renderCatAdmin() {
-        const box = document.getElementById('cat-list-box'); box.innerHTML = '';
+function renderCatAdmin() {
+        const box = document.getElementById('cat-list-box');
+        box.innerHTML = '';
+        
         const cats = [...new Set(allLinks.map(l => l.category))];
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
+
         sortedCats.forEach((c, idx) => {
+            // 获取该大类下所有的小分类名
+            const subs = [...new Set(allLinks.filter(l => l.category === c && l.subcategory).map(l => l.subcategory))];
+            
             const row = document.createElement('div');
-            row.className = 'cat-admin-row'; row.draggable = true;
-            row.innerHTML = `<i class="fas fa-bars drag-handle"></i><input type="text" value="${c}" style="flex:1;background:transparent;border:none;color:#fff"><div class="row-btns"><button class="btn-mini blue" onclick="addSubCatPrompt('${c}')">+子类</button><button class="btn-mini" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div>`;
-            row.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
-            row.ondragend = () => row.style.opacity = '1';
+            row.className = 'cat-admin-container'; // 改为容器包裹
+            row.style.marginBottom = "15px";
+            
+            let subTagsHtml = subs.map(s => `
+                <span class="mini-sub-tag">
+                    ${s} <i class="fas fa-times" onclick="deleteSubCat('${c}', '${s}')"></i>
+                </span>
+            `).join('');
+
+            row.innerHTML = `
+                <div class="cat-admin-row" draggable="true" data-idx="${idx}">
+                    <i class="fas fa-bars drag-handle"></i>
+                    <input type="text" value="${c}" style="flex:1;background:transparent;border:none;color:#fff">
+                    <div class="row-btns">
+                        <button class="btn-mini blue" onclick="addSubCatPrompt('${c}')">+子类</button>
+                        <button class="btn-mini" onclick="renameCat('${c}', this)">改名</button>
+                        <button class="btn-mini red" onclick="deleteCat('${c}')">删除</button>
+                    </div>
+                </div>
+                <div class="cat-admin-subs" style="padding-left: 35px; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap;">
+                    ${subTagsHtml}
+                </div>
+            `;
+            
+            // 拖拽逻辑保持...
+            row.querySelector('.cat-admin-row').ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
+            row.querySelector('.cat-admin-row').ondragend = () => row.style.opacity = '1';
+            row.ondragover = e => e.preventDefault();
             row.ondrop = async (e) => {
                 e.preventDefault();
                 const from = parseInt(e.dataTransfer.getData('idx')), to = idx;
+                if (from === to) return;
                 const newOrder = [...sortedCats]; const [moved] = newOrder.splice(from, 1); newOrder.splice(to, 0, moved);
                 categoryOrder = newOrder; render(); renderCatAdmin();
                 apiReq('updateOrder', { order: categoryOrder }, true);
@@ -293,3 +329,21 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('btn-top').style.display = document.getElementById('btn-float-search').style.display = y > 300 ? 'flex' : 'none';
     };
 });
+
+
+window.deleteSubCat = async (mainCat, subCat) => {
+        if (!confirm(`确定要删除小分类 "${subCat}" 吗？该分类下的站点将失去分类标记。`)) return;
+        
+        // 将该大类下所有属于该小类的站点的 subcategory 清空
+        allLinks = allLinks.map(l => {
+            if (l.category === mainCat && l.subcategory === subCat) {
+                return { ...l, subcategory: "" };
+            }
+            return l;
+        });
+
+        render();
+        renderCatAdmin();
+        // 保存更新后的 allLinks
+        apiReq('updateLinksOrder', { link: allLinks }, true);
+    };
