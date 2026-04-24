@@ -265,6 +265,12 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     margin-bottom: 15px !important; /* 与下一行保持间距 */
 }
 
+.custom-row-align select {
+    flex: 1 !important;
+    width: 50% !important; /* 让两个下拉框平分 */
+    height: 50px !important;
+}
+
 /* 第三行：网址和图标并排（保持原样，但确保对齐） */
 #in-url {
     flex: 1 !important;
