@@ -113,15 +113,58 @@ async function fetchData() {
             
     // 创建站点卡片
 function createCard(l) {
-        const card = document.createElement('div');
-        card.className = 'link-card'; card.draggable = true;
-        if (l.desc) card.setAttribute('data-desc', l.desc); // 这是新增的内容
-        card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
-        card.onclick = () => window.open(l.url, '_blank');
-        card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
-        card.ondragstart = (e) => e.dataTransfer.setData('text/plain', l.url);
-        return card;
-    }
+    const card = document.createElement('div');
+    card.className = 'link-card'; 
+    card.draggable = true;
+    if (l.desc) card.setAttribute('data-desc', l.desc);
+    
+    card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
+    
+    card.onclick = () => window.open(l.url, '_blank');
+    card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
+
+    // --- 核心排序逻辑开始 ---
+    card.ondragstart = (e) => {
+        e.dataTransfer.setData('text/plain', l.url);
+        card.classList.add('dragging');
+    };
+
+    card.ondragend = () => card.classList.remove('dragging');
+
+    card.ondragover = (e) => {
+        e.preventDefault();
+        const draggingCard = document.querySelector('.dragging');
+        if (draggingCard !== card) {
+            card.classList.add('drag-insert-before'); // 增加一个视觉提示线
+        }
+    };
+
+    card.ondragleave = () => card.classList.remove('drag-insert-before');
+
+    card.ondrop = async (e) => {
+        e.preventDefault();
+        card.classList.remove('drag-insert-before');
+        const draggedUrl = e.dataTransfer.getData('text/plain');
+        if (draggedUrl === l.url) return; // 自己排自己，跳过
+
+        // 重新排序数组
+        const draggedIdx = allLinks.findIndex(x => x.url === draggedUrl);
+        const targetIdx = allLinks.findIndex(x => x.url === l.url);
+        
+        if (draggedIdx > -1 && targetIdx > -1) {
+            const item = allLinks.splice(draggedIdx, 1)[0];
+            // 将分类也同步更新（防止跨类拖拽排序时分类没变）
+            item.category = l.category; 
+            allLinks.splice(targetIdx, 0, item);
+            
+            // 保存新顺序到服务器
+            await apiReq('updateLinksOrder', { link: allLinks });
+        }
+    };
+    // --- 核心排序逻辑结束 ---
+
+    return card;
+}
 
     // --- 搜索逻辑【核心修复版】 ---
     function setupSearch(boxSel) {
