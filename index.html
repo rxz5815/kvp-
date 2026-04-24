@@ -21,7 +21,6 @@
           <input type="text" class="search-input" placeholder="输入搜索内容" autocomplete="off">
           <button class="search-trigger-btn"><i class="fas fa-search"></i></button>
         </div>
-        <!-- 问题1：这个区域将在站内搜索时隐藏 -->
         <div class="search-engines">
           <span class="engine active" data-url="https://www.baidu.com/s?wd=">百度</span>
           <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
@@ -30,16 +29,40 @@
     </header>
     <nav id="sticky-nav"><ul id="category-ul"></ul></nav>
     <main id="main-content"></main>
+
+    <!-- 恢复功能3: 页脚 -->
+    <footer class="advanced-footer">
+        <div class="footer-divider"></div>
+        <div class="footer-container">
+            <div class="footer-brand">
+                <span class="brand-logo">网站导航系统</span>
+                <p>构建你的私人导航站点</p>
+            </div>
+            <div class="footer-nav">
+                <div class="nav-group">
+                    <a href="#">隐私政策</a>
+                    <a href="#">使用条款</a>
+                    <a href="mailto:yourname@example.com">联系我们</a>
+                </div>
+                <div class="social-group">
+                    <a href="https://github.com/rxz5815/WZDH" target="_blank"><i class="fab fa-github"></i></a>
+                    <a href="#"><i class="fab fa-weixin"></i></a>
+                </div>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; <span id="current-year"></span> 网站导航系统. Designed for Efficiency.</p>
+            </div>
+        </div>
+    </footer>
   </div>
 
-  <!-- 侧边栏按钮 -->
   <div class="side-tools">
-    <button class="side-btn" id="btn-top" style="display:none;" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
-    <button class="side-btn" id="btn-float-search" style="display:none;" title="全局搜索"><i class="fas fa-search"></i></button>
-    <button class="side-btn" id="btn-add-site" title="添加站点"><i class="fas fa-plus"></i></button>
-    <button class="side-btn" id="btn-toggle-bg" title="渐变背景"><i class="fas fa-palette"></i></button>
-    <button class="side-btn" id="btn-random-bg" title="图片背景"><i class="fas fa-image"></i></button>
-    <button class="side-btn" id="btn-cat-admin" title="分类管理"><i class="fas fa-folder"></i></button>
+    <button class="side-btn" id="btn-top" style="display:none;"><i class="fas fa-arrow-up"></i></button>
+    <button class="side-btn" id="btn-float-search" style="display:none;"><i class="fas fa-search"></i></button>
+    <button class="side-btn" id="btn-add-site"><i class="fas fa-plus"></i></button>
+    <button class="side-btn" id="btn-toggle-bg"><i class="fas fa-palette"></i></button>
+    <button class="side-btn" id="btn-random-bg"><i class="fas fa-image"></i></button>
+    <button class="side-btn" id="btn-cat-admin"><i class="fas fa-folder"></i></button>
   </div>
 
   <!-- 搜索弹窗 -->
@@ -60,20 +83,21 @@
           <span class="engine" data-url="https://www.google.com/search?q=">Google</span>
         </div>
       </div>
-      <div id="modal-results-area" class="link-grid"></div>
+      <!-- 恢复功能4: 侧边栏搜索结果显示在这里 -->
+      <div id="modal-results-area" class="link-grid" style="margin-top:20px; max-height:400px; overflow-y:auto;"></div>
     </div>
   </div>
 
-  <!-- 编辑站点弹窗 -->
+  <!-- 编辑站点 -->
   <div class="modal" id="modal-link">
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
-      <h3 class="modal-title-center">编辑站点</h3>
+      <h3 style="text-align:center; margin-bottom:20px">编辑站点</h3>
       <form id="link-form">
         <input type="text" name="title" id="in-title" placeholder="站点标题" required style="margin-bottom:15px">
         <div class="modal-row">
           <select name="category" id="cat-hint" required><option value="">大分类</option></select>
-          <select name="subcategory" id="in-subcat"><option value="">二级小类 (选填)</option></select>
+          <select name="subcategory" id="in-subcat"><option value="">选择小类</option></select>
         </div>
         <input type="text" name="desc" id="in-desc" placeholder="站点描述" style="margin-bottom:15px">
         <div class="modal-row">
@@ -85,11 +109,11 @@
     </div>
   </div>
 
-  <!-- 分类管理弹窗 -->
+  <!-- 分类管理 -->
   <div class="modal" id="modal-cat">
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
-      <h3 class="modal-title-center">分类管理</h3>
+      <h3 style="text-align:center; margin-bottom:20px">分类管理</h3>
       <div id="cat-list-box" class="scroll-area"></div>
       <div class="add-cat-area">
           <input type="text" id="new-cat-input" placeholder="新大类名称">
@@ -98,14 +122,12 @@
     </div>
   </div>
 
-  <!-- 问题3修复：自定义添加二级小类弹窗 -->
+  <!-- 修复问题3: 自定义二级分类弹窗 -->
   <div class="modal" id="modal-subcat">
     <div class="modal-overlay"></div>
     <div class="modal-body modern-modal">
-      <h3 class="modal-title-center" id="subcat-modal-title">添加二级分类</h3>
-      <div class="modal-row">
-        <input type="text" id="new-subcat-input" placeholder="输入二级分类名称">
-      </div>
+      <h3 id="subcat-modal-title" style="text-align:center; margin-bottom:20px">添加小类</h3>
+      <input type="text" id="new-subcat-input" placeholder="小类名称" style="margin-bottom:20px">
       <button class="save-btn-new" id="btn-confirm-subcat">确定添加</button>
     </div>
   </div>
