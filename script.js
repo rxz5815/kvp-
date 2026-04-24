@@ -96,14 +96,17 @@ grid.ondrop = async function(e) {
     grid.classList.remove('drag-over');
     const url = e.dataTransfer.getData('text/plain');
     
-    // 如果 drop 的目标是 grid 本身（说明拖到了空白处，而不是某个卡片上）
     if (e.target.classList.contains('link-grid')) {
         const itemIdx = allLinks.findIndex(l => l.url === url);
         if (itemIdx > -1) {
             const item = allLinks.splice(itemIdx, 1)[0];
-            item.category = cat; // 更改分类
-            allLinks.push(item); // 放到该分类的最后面
-await apiReq('updateLinksOrder', { link: allLinks }, true);
+            item.category = cat; 
+            allLinks.push(item); 
+            
+            // --- 修复：立即渲染界面，防止图标消失 ---
+            render(); 
+            // 静默保存
+            apiReq('updateLinksOrder', { link: allLinks }, true);
         }
     }
 };
@@ -148,11 +151,26 @@ function createCard(l) {
 
     card.ondragleave = () => card.classList.remove('drag-insert-before');
 
-    card.ondrop = async (e) => {
+card.ondrop = async (e) => {
         e.preventDefault();
         card.classList.remove('drag-insert-before');
         const draggedUrl = e.dataTransfer.getData('text/plain');
-        if (draggedUrl === l.url) return; // 自己排自己，跳过
+        if (draggedUrl === l.url) return;
+
+        const draggedIdx = allLinks.findIndex(x => x.url === draggedUrl);
+        const targetIdx = allLinks.findIndex(x => x.url === l.url);
+        
+        if (draggedIdx > -1 && targetIdx > -1) {
+            const item = allLinks.splice(draggedIdx, 1)[0];
+            item.category = l.category; 
+            allLinks.splice(targetIdx, 0, item);
+            
+            // --- 修复：立即渲染界面，防止图标消失 ---
+            render();
+            // 静默保存
+            apiReq('updateLinksOrder', { link: allLinks }, true);
+        }
+    };
 
         // 重新排序数组
         const draggedIdx = allLinks.findIndex(x => x.url === draggedUrl);
