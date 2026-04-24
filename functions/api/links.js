@@ -33,8 +33,16 @@ export async function onRequest(context) {
     links = links.map(l => l.category === oldCategory ? { ...l, category: newCategory } : l);
   } else if (action === 'deleteCategory') {
     links = links.filter(l => l.category !== oldCategory);
-  } else if (action === 'addCategory') {
-    links.push({ category: newCategory, title: 'placeholder_hidden', url: 'https://placeholder' + Math.random(), icon: '' });
+// links.js
+} else if (action === 'addCategory') {
+    links.push({ 
+        category: newCategory, 
+        subcategory: subcategory || '', // 接收传过来的小类名
+        title: 'placeholder_hidden', 
+        url: 'https://placeholder' + Math.random(), 
+        icon: '' 
+    });
+}
   } else {
     links = links.filter(l => l.title !== 'placeholder_hidden');
     const idx = links.findIndex(l => l.url === link.url);
