@@ -3,34 +3,46 @@ document.addEventListener('DOMContentLoaded', function() {
     let categoryOrder = [];
     let currentEngine = "https://www.baidu.com/s?wd=";
 
-        // 渐变背景
+    // --- 恢复：年份自动更新 ---
+    const yearEl = document.getElementById('current-year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    // --- 恢复：渐变背景列表 ---
     const grads = [
-        'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)', // 默认渐变蓝
-        'linear-gradient(135deg, #134e5e 0%, #71b280 100%)', // 渐变绿
-        'linear-gradient(135deg, #202124 0%, #3c4043 100%)', // 渐变灰
-        'linear-gradient(135deg, #2c3e50 0%, #4ca1af 80%)', // 墨青蓝绿
-        'linear-gradient(45deg, #3d2b56 0%, #8e54e9 80%)', // 暗调茄紫
-        'linear-gradient(135deg, #283048 0%, #859398 80%)', // 烟灰棕
-        'linear-gradient(45deg, #1e2a38 0%, #5a7fa5 80%)', // 藏青灰
-        'linear-gradient(135deg, #192841 0%, #607d8b 80%)', // 冷调钢灰
-        'linear-gradient(45deg, #271f30 0%, #7b4397 80%)', // 暗调绛紫
-        'linear-gradient(135deg, #182c39 0%, #486a78 80%)', // 青灰棕
-        'linear-gradient(45deg, #221d2e 0%, #614e77 80%)', // 暗调藕紫
-        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'  // 渐变紫
+        'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+        'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
+        'linear-gradient(135deg, #202124 0%, #3c4043 100%)',
+        'linear-gradient(135deg, #2c3e50 0%, #4ca1af 80%)',
+        'linear-gradient(45deg, #3d2b56 0%, #8e54e9 80%)',
+        'linear-gradient(135deg, #283048 0%, #859398 80%)',
+        'linear-gradient(45deg, #1e2a38 0%, #5a7fa5 80%)',
+        'linear-gradient(135deg, #192841 0%, #607d8b 80%)',
+        'linear-gradient(45deg, #271f30 0%, #7b4397 80%)',
+        'linear-gradient(135deg, #182c39 0%, #486a78 80%)',
+        'linear-gradient(45deg, #221d2e 0%, #614e77 80%)',
+        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
     ];
 
-            // 切换背景
-    const updateBg = (val, save = true) => {
-        const bg = document.getElementById('bg-canvas');
-        if(val.startsWith('http')) bg.style.backgroundImage = `url(${val})`;
-        else bg.style.background = val;
-        if(save) localStorage.setItem('nav_bg_v18', val);
+    // --- 恢复：背景更新逻辑 ---
+    const updateBg = (v, s = true) => {
+        const b = document.getElementById('bg-canvas');
+        if(v.startsWith('http')) {
+            b.style.backgroundImage = `url(${v})`;
+            b.style.backgroundSize = 'cover';
+        } else {
+            b.style.background = v;
+        }
+        if(s) localStorage.setItem('nav_bg_v18', v);
     };
+    
+    // 初始化背景
     updateBg(localStorage.getItem('nav_bg_v18') || grads[0]);
 
+    // --- 恢复：背景切换按钮事件 ---
     document.getElementById('btn-toggle-bg').onclick = () => {
-        let curr = localStorage.getItem('nav_bg_v18');
-        let nextIdx = (grads.indexOf(curr) + 1) % grads.length;
+        let c = localStorage.getItem('nav_bg_v18');
+        let nextIdx = (grads.indexOf(c) + 1) % grads.length;
+        if (nextIdx < 0) nextIdx = 0; // 如果当前是图片，切换回第一个渐变
         updateBg(grads[nextIdx]);
     };
 
@@ -45,13 +57,6 @@ document.addEventListener('DOMContentLoaded', function() {
             overlay.parentElement.style.display = 'none';
         };
     });
-
-    const updateBg = (v, s = true) => {
-        const b = document.getElementById('bg-canvas');
-        if(v.startsWith('http')) b.style.backgroundImage = `url(${v})`; else b.style.background = v;
-        if(s) localStorage.setItem('nav_bg_v18', v);
-    };
-    updateBg(localStorage.getItem('nav_bg_v18') || 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)');
 
     async function fetchData() {
         try {
@@ -121,13 +126,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const item = allLinks.find(l => l.url === url);
                 if (item) {
                     item.category = cat;
-                    // --- 修复问题 6: 拖拽到有小分类激活的区域时，自动分配小分类 ---
+                    // --- 修复问题 6: 拖拽逻辑 ---
                     const activeSub = sec.querySelector('.sub-tag.active')?.dataset.sub;
-                    if (activeSub && activeSub !== '全部') {
-                        item.subcategory = activeSub;
-                    } else {
-                        item.subcategory = ""; // 如果是“全部”，则清除小分类
-                    }
+                    item.subcategory = (activeSub && activeSub !== '全部') ? activeSub : "";
                     render();
                     apiReq('updateLinksOrder', { link: allLinks }, true);
                 }
@@ -187,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
             row.className = 'cat-admin-container'; row.style.marginBottom = "15px";
             let subTagsHtml = subs.map(s => `<span class="mini-sub-tag">${s} <i class="fas fa-times" onclick="deleteSubCat('${c}', '${s}')"></i></span>`).join('');
 
-            // 问题5修复：为“改名”增加 purple 类名
+            // 问题5修复：按钮颜色
             row.innerHTML = `
                 <div class="cat-admin-row" draggable="true">
                     <i class="fas fa-bars drag-handle"></i>
@@ -216,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- 修复问题 3 & 4: 自定义子类弹窗 & 实时渲染 ---
+    // --- 问题 3 & 4: 自定义子类弹窗 ---
     let currentAddSubCatParent = "";
     window.addSubCatPrompt = (mainCat) => {
         currentAddSubCatParent = mainCat;
@@ -229,11 +230,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const subName = document.getElementById('new-subcat-input').value.trim();
         if (!subName) return;
         document.getElementById('modal-subcat').style.display = 'none';
-        
-        // 关键点：发送请求并重新获取数据渲染，确保分类管理处显示
         const success = await apiReq('addCategory', { newCategory: currentAddSubCatParent, subcategory: subName });
         if (success) {
-            // fetchData 内部会调用 render，但我们手动调用 renderCatAdmin 确保管理界面同步
             setTimeout(renderCatAdmin, 500); 
         }
     };
@@ -261,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
     }
 
-    // --- 修复问题 1: 站内搜索隐藏引擎 ---
+    // --- 问题 1: 搜索逻辑 ---
     function setupSearch(boxSel) {
         const box = document.querySelector(boxSel);
         const inp = box.querySelector('.search-input');
@@ -272,19 +270,19 @@ document.addEventListener('DOMContentLoaded', function() {
             tab.onclick = () => {
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                // 如果是站内搜索，隐藏引擎，否则显示
                 if (tab.dataset.type === 'internal') {
-                    engines.classList.add('hidden');
+                    if(engines) engines.classList.add('hidden');
                 } else {
-                    engines.classList.remove('hidden');
+                    if(engines) engines.classList.remove('hidden');
                 }
             };
         });
 
-        inp.addEventListener('input', function() {
+        const handleSearchInput = function() {
             const q = this.value.trim().toLowerCase();
-            const isInt = box.querySelector('.tab.active').dataset.type === 'internal';
-            if(!isInt) return;
+            const activeTab = box.querySelector('.tab.active');
+            if(!activeTab || activeTab.dataset.type !== 'internal') return;
+            
             if(!q) { 
                 document.body.classList.remove('is-searching'); 
                 document.querySelectorAll('.link-card, section').forEach(el => el.style.display = ''); 
@@ -296,15 +294,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 const has = Array.from(s.querySelectorAll('.link-card')).some(c => c.style.display !== 'none');
                 s.style.display = has ? '' : 'none';
             });
-        });
-
-        const confirm = () => { 
-            const q = inp.value.trim(); 
-            if(q && box.querySelector('.tab.active').dataset.type !== 'internal') 
-                window.open(currentEngine + encodeURIComponent(q), '_blank'); 
         };
-        box.querySelector('.search-trigger-btn').onclick = confirm;
-        inp.onkeydown = e => { if(e.key === 'Enter') confirm(); };
+
+        inp.addEventListener('input', handleSearchInput);
+
+        const confirmSearch = () => { 
+            const q = inp.value.trim(); 
+            const activeTab = box.querySelector('.tab.active');
+            if(q && activeTab && activeTab.dataset.type !== 'internal') {
+                const currentActiveEngine = box.querySelector('.engine.active')?.dataset.url || currentEngine;
+                window.open(currentActiveEngine + encodeURIComponent(q), '_blank'); 
+            }
+        };
+
+        box.querySelector('.search-trigger-btn').onclick = confirmSearch;
+        inp.onkeydown = e => { if(e.key === 'Enter') confirmSearch(); };
+
+        // 引擎切换逻辑
+        if(engines) {
+            engines.querySelectorAll('.engine').forEach(eng => {
+                eng.onclick = () => {
+                    engines.querySelectorAll('.engine').forEach(e => e.classList.remove('active'));
+                    eng.classList.add('active');
+                };
+            });
+        }
     }
     setupSearch('.main-search');
     setupSearch('.modal-inner-search');
@@ -323,7 +337,11 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     document.getElementById('btn-top').onclick = () => window.scrollTo({top:0, behavior:'smooth'});
-    document.getElementById('btn-float-search').onclick = () => { document.getElementById('modal-search').style.display='flex'; setTimeout(() => document.querySelector('.modal-inner-search .search-input').focus(), 100); };
+    document.getElementById('btn-float-search').onclick = () => { 
+        document.getElementById('modal-search').style.display='flex'; 
+        setTimeout(() => document.querySelector('.modal-inner-search .search-input').focus(), 100); 
+    };
+    
     window.onscroll = () => {
         const y = window.scrollY;
         document.getElementById('btn-top').style.display = document.getElementById('btn-float-search').style.display = y > 300 ? 'flex' : 'none';
