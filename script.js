@@ -103,7 +103,7 @@ grid.ondrop = async function(e) {
             const item = allLinks.splice(itemIdx, 1)[0];
             item.category = cat; // 更改分类
             allLinks.push(item); // 放到该分类的最后面
-            await apiReq('updateLinksOrder', { link: allLinks });
+await apiReq('updateLinksOrder', { link: allLinks }, true);
         }
     }
 };
@@ -165,7 +165,7 @@ function createCard(l) {
             allLinks.splice(targetIdx, 0, item);
             
             // 保存新顺序到服务器
-            await apiReq('updateLinksOrder', { link: allLinks });
+await apiReq('updateLinksOrder', { link: allLinks }, true);
         }
     };
     // --- 核心排序逻辑结束 ---
@@ -365,25 +365,38 @@ function renderCatAdmin() {
                 render();           // 刷新首页
                 renderCatAdmin();    // 刷新弹窗内部列表
 
-                // --- 步骤 C：使用你现有的 apiReq 异步保存到后台 ---
-                // apiReq 内部会自动检查 sessionStorage，如果已登录则不会弹窗
-                apiReq('updateOrder', { order: categoryOrder });
+
+                // 增加第三个参数 true，表示静默保存，不刷新数据
+                const success = await apiReq('updateOrder', { order: categoryOrder }, true);
+                if (success) {
+                    console.log("顺序已同步至服务器");
+                }
             };
             
             box.appendChild(row);
         });
     }
 
-    async function apiReq(action, data) {
-        let pwd = sessionStorage.getItem('auth_pwd_v9') || data.password || prompt("管理密码:");
-        if(!pwd) return;
-        const res = await fetch('/api/links', {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ ...data, password: pwd, action })
-        });
-        if(res.ok) { sessionStorage.setItem('auth_pwd_v9', pwd); fetchData(); return true; }
+async function apiReq(action, data, noRefresh = false) {
+    let pwd = sessionStorage.getItem('auth_pwd_v9') || data.password || prompt("管理密码:");
+    if(!pwd) return false;
+    const res = await fetch('/api/links', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ ...data, password: pwd, action })
+    });
+    if(res.ok) { 
+        sessionStorage.setItem('auth_pwd_v9', pwd); 
+        // 关键：只有在非排序操作时才自动刷新数据
+        if(!noRefresh) await fetchData(); 
+        return true; 
+    } else {
+        if(res.status === 401) {
+            alert("密码错误，保存失败！");
+            sessionStorage.removeItem('auth_pwd_v9');
+        }
         return false;
     }
+}
 
     window.deleteSite = (e, u) => { e.stopPropagation(); if(confirm("确定删除吗？")) apiReq('delete', { link: {url:u} }); };
     window.renameCat = (old, btn) => apiReq('renameCategory', { oldCategory: old, newCategory: btn.closest('.cat-admin-row').querySelector('input').value });
