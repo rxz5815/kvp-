@@ -102,7 +102,20 @@ section { margin-top: 50px; scroll-margin-top: 100px; }
 .nav-group { display: flex; gap: 30px; }
 .nav-group a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 14px; transition: 0.3s; }
 .nav-group a:hover { color: #fff; }
-.social-group { display: flex; gap: 20px; font-size: 18px; }
+/* 社交图标组 */
+.social-group {
+    display: flex;
+    gap: 20px;
+    font-size: 18px;
+}
+.social-group a {
+    color: rgba(255,255,255,0.3);
+    transition: 0.3s ease;
+}
+.social-group a:hover {
+    color: var(--blue); /* 悬停变蓝色 */
+    transform: translateY(-3px);
+}
 .social-group a { color: rgba(255,255,255,0.3); transition: 0.3s; }
 .social-group a:hover { color: var(--blue); transform: translateY(-3px); }
 .footer-copyright { margin-top: 10px; font-size: 11px; color: rgba(255,255,255,0.2); letter-spacing: 2px; }
