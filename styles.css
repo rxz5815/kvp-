@@ -445,3 +445,23 @@ body.is-searching .category-title, body.is-searching #sticky-nav { display: none
     flex: none !important;
     width: 47% !important; /* 给二级分类输入框一个固定宽度 */
 }
+
+/* 小分类 */
+.mini-sub-tag {
+    background: rgba(255,255,255,0.05);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.mini-sub-tag i {
+    cursor: pointer;
+    font-size: 10px;
+}
+.mini-sub-tag i:hover {
+    color: var(--red);
+}
