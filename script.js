@@ -317,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderCatAdmin() {
         const box = document.getElementById('cat-list-box');
+        if (!box) return;
         box.innerHTML = '';
         
         const cats = [...new Set(allLinks.map(l => l.category))];
