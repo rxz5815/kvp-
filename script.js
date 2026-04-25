@@ -231,27 +231,30 @@ grid.ondrop = async function(e) {
 
 card.ondrop = async (e) => {
             e.preventDefault();
+            e.stopPropagation(); // 阻止冒泡
             card.classList.remove('drag-insert-before');
+            
             const draggedUrl = e.dataTransfer.getData('text/plain');
             if (draggedUrl === l.url) return;
 
             const draggedIdx = allLinks.findIndex(x => x.url === draggedUrl);
-            const targetIdx = allLinks.findIndex(x => x.url === l.url);
+            if (draggedIdx === -1) return;
 
-            if (draggedIdx > -1 && targetIdx > -1) {
-                const item = allLinks.splice(draggedIdx, 1)[0];
-                
-                // 核心逻辑：继承目标卡片的分类信息，确保在“全部”和“小分类”视图下表现一致
-                item.category = l.category;
-                item.subCategory = l.subCategory || ""; 
-                
-                // 获取当前删除后新的目标索引位置
-                const newTargetIdx = allLinks.findIndex(x => x.url === l.url);
-                allLinks.splice(newTargetIdx, 0, item);
-                
-                render(); 
-                apiReq('updateLinksOrder', { link: allLinks }, true);
-            }
+            // 1. 先取出被拖拽的对象
+            const item = allLinks.splice(draggedIdx, 1)[0];
+            
+            // 2. 继承目标位置的分类属性（支持跨类排序）
+            item.category = l.category;
+            item.subCategory = l.subCategory || ""; 
+            
+            // 3. 重新寻找目标卡片的当前索引（因为刚才 splice 删掉了一个元素，索引可能变了）
+            const newTargetIdx = allLinks.findIndex(x => x.url === l.url);
+            
+            // 4. 插在目标位置
+            allLinks.splice(newTargetIdx, 0, item);
+            
+            render(); 
+            apiReq('updateLinksOrder', { link: allLinks }, true);
         };
         return card;
     }
