@@ -156,13 +156,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 grid.classList.remove('drag-over');
                 const url = e.dataTransfer.getData('text/plain');
                 const itemIdx = allLinks.findIndex(l => l.url === url);
-                if (itemIdx > -1) {
+                if (itemIdx > -1) {              
                     const item = allLinks.splice(itemIdx, 1)[0];
                     item.category = cat;
-                    // 如果拖拽到具体某个子分类下，则更新子分类。如果是在“全部”状态下拖拽，则清空子分类或保持
                     const currentSub = grid.dataset.sub;
-                    if (currentSub !== 'all') item.subCategory = currentSub;
-                    
+                    // 如果是拖入“全部”视图，强制清空子分类；否则设为当前子分类名称
+                    item.subCategory = (currentSub === 'all') ? "" : currentSub;
+                 
                     allLinks.push(item); 
                     render();
                     apiReq('updateLinksOrder', { link: allLinks }, true);
@@ -204,9 +204,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const draggedIdx = allLinks.findIndex(x => x.url === draggedUrl);
             const targetIdx = allLinks.findIndex(x => x.url === l.url);
             if (draggedIdx > -1 && targetIdx > -1) {
+                
                 const item = allLinks.splice(draggedIdx, 1)[0];
                 item.category = l.category; 
                 item.subCategory = l.subCategory; // 拖拽到卡片上，自动继承该卡片的二级分类
+                
+                const item = allLinks.splice(draggedIdx, 1)[0];
+                item.category = l.category; 
+                // 确保继承目标图标的子分类，如果没有则设为空字符串，防止 undefined 污染
+                item.subCategory = l.subCategory || "";
+                
                 allLinks.splice(targetIdx, 0, item);
                 render(); 
                 apiReq('updateLinksOrder', { link: allLinks }, true);
