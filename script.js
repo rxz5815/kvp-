@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     let allLinks = [];
     let categoryOrder = [];
+    let activeSubFilters = {}; 
     let currentEngine = "https://www.baidu.com/s?wd=";
     
     const yearEl = document.getElementById('current-year');
@@ -113,11 +114,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 .map(l => l.subCategory)
             )];
 
+            // 获取该大类当前保存的选中状态，如果没有则默认为 'all'
+            const currentSub = activeSubFilters[cat] || 'all';
+
             let subFilterHtml = '';
             if (subCats.length > 0) {
                 subFilterHtml = `<div class="sub-cat-filter" data-parent="${cat}">
-                    <span class="sub-cat-item active" data-sub="all">全部</span>
-                    ${subCats.map(s => `<span class="sub-cat-item" data-sub="${s}">${s}</span>`).join('')}
+                    <span class="sub-cat-item ${currentSub === 'all' ? 'active' : ''}" data-sub="all">全部</span>
+                    ${subCats.map(s => `<span class="sub-cat-item ${currentSub === s ? 'active' : ''}" data-sub="${s}">${s}</span>`).join('')}
                 </div>`;
             }
 
@@ -126,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h2 class="category-title">${cat}</h2>
                     ${subFilterHtml}
                 </div>
-                <div class="link-grid" data-cat="${cat}" data-sub="all"></div>`;
+                <div class="link-grid" data-cat="${cat}" data-sub="${currentSub}"></div>`;
             
             const grid = sec.querySelector('.link-grid');
             
@@ -136,8 +140,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     sec.querySelectorAll('.sub-cat-item').forEach(i => i.classList.remove('active'));
                     item.classList.add('active');
                     const subTarget = item.dataset.sub;
-                    grid.dataset.sub = subTarget;
                     
+                    activeSubFilters[cat] = subTarget; // <-- 核心修复：记录当前点击的是哪个小分类      
+                    sec.querySelectorAll('.sub-cat-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    grid.dataset.sub = subTarget;
+    
                     // 过滤显示
                     grid.querySelectorAll('.link-card').forEach(card => {
                         if (subTarget === 'all' || card.dataset.sub === subTarget) {
@@ -170,6 +178,14 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             (grouped[cat] || []).forEach(l => {
+                const card = createCard(l);
+                // 核心修复：渲染时，如果当前记录的状态不是'all'，且卡片不属于选中的子类，则隐藏
+                const currentSub = activeSubFilters[cat] || 'all';
+                if (currentSub !== 'all' && l.subCategory !== currentSub) {
+                    card.style.display = 'none';
+                }
+                grid.appendChild(card);
+            });
                 const card = createCard(l);
                 grid.appendChild(card);
             });
