@@ -65,9 +65,8 @@ export async function onRequest(context) {
       links = links.filter(l => !(l.title === 'placeholder_hidden' && l.url.includes('placeholder_sub')));
       break;
 
-    case 'save':
-      // 过滤掉当前要保存站点的旧版本（如果存在）以及处理占位符
-      links = links.filter(l => l.title !== 'placeholder_hidden');
+case 'save':
+      // 保留空分类的支撑
       const idx = links.findIndex(l => l.url === link.url);
       if (idx > -1) links[idx] = link;
       else links.push(link);
