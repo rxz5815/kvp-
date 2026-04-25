@@ -37,7 +37,7 @@ header h1 { text-align: center; font-weight: 300; font-size: 40px; color: #fffff
     background: rgba(15, 15, 15, 0.35); 
     backdrop-filter: blur(20px); 
     border-radius: 12px; 
-    margin: 40px 0 80px 0; 
+    margin: 40px 0 70px 0; 
     border: 1px solid rgba(255,255,255,0.05); 
 }
 
@@ -45,10 +45,10 @@ header h1 { text-align: center; font-weight: 300; font-size: 40px; color: #fffff
 #category-ul a { color: #ccc !important; text-decoration: none; font-size: 16px; padding: 6px 12px; border-radius: 8px; transition: all 0.3s ease; display: inline-block; }
 #category-ul a:hover { color: #fff !important; background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
-/* 站点展示 */
+/* 站点展示 分类跳转间距 */
 section { 
     margin-top: 50px; 
-    scroll-margin-top: 100px;    
+    scroll-margin-top: 80px; 
     transition: 0.3s; 
 }
 
