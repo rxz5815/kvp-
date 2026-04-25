@@ -272,50 +272,92 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('btn-cat-admin').onclick = () => { renderCatAdmin(); document.getElementById('modal-cat').style.display = 'flex'; };
 
-    function renderCatAdmin() {
+    
+function renderCatAdmin() {
         const box = document.getElementById('cat-list-box');
-        if (!box) return; box.innerHTML = '';
+        if (!box) return;
+        box.innerHTML = '';
+        
         const cats = [...new Set(allLinks.map(l => l.category))];
         let sortedCats = categoryOrder.filter(c => cats.includes(c));
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
 
         sortedCats.forEach((c, idx) => {
+            // --- 大类行 ---
             const row = document.createElement('div');
             row.className = 'cat-admin-row'; row.draggable = true;
-            row.innerHTML = `<i class="fas fa-bars drag-handle"></i><input type="text" value="${c}"><div class="row-btns"><button class="btn-mini blue" onclick="addSubCat('${c}')">+子类</button><button class="btn-mini blue" onclick="renameCat('${c}', this)">改名</button><button class="btn-mini red" onclick="deleteCat('${c}')">删除</button></div>`;
-            row.ondragstart = e => { e.dataTransfer.setData('cat-idx', idx); row.style.opacity = '0.5'; };
+            row.innerHTML = `
+                <i class="fas fa-bars drag-handle"></i>
+                <input type="text" value="${c}">
+                <div class="row-btns">
+                    <button class="btn-mini blue" onclick="addSubCat('${c}')">+子类</button>
+                    <button class="btn-mini blue" onclick="renameCat('${c}', this)">改名</button>
+                    <button class="btn-mini red" onclick="deleteCat('${c}')">删除</button>
+                </div>`;
+            
+            row.ondragstart = (e) => { e.dataTransfer.setData('cat-idx', idx); row.style.opacity = '0.5'; };
             row.ondragend = () => row.style.opacity = '1';
             row.ondragover = e => e.preventDefault();
-            row.ondrop = async e => {
-                e.preventDefault(); const from = e.dataTransfer.getData('cat-idx');
+            row.ondrop = async (e) => {
+                e.preventDefault();
+                const from = e.dataTransfer.getData('cat-idx');
                 if (from === "") return;
-                const fromIdx = parseInt(from); if (fromIdx === idx) return;
-                const newOrder = [...sortedCats]; const [movedItem] = newOrder.splice(fromIdx, 1);
-                newOrder.splice(idx, 0, movedItem); categoryOrder = newOrder;
-                render(); renderCatAdmin(); apiReq('updateOrder', { order: categoryOrder }, true);
+                const fromIdx = parseInt(from);
+                if (fromIdx === idx) return;
+                const newOrder = [...sortedCats];
+                const [movedItem] = newOrder.splice(fromIdx, 1);
+                newOrder.splice(idx, 0, movedItem);
+                categoryOrder = newOrder;
+                render();
+                renderCatAdmin();
+                apiReq('updateOrder', { order: categoryOrder }, true);
             };
             box.appendChild(row);
 
-                        const subCats = [...new Set(allLinks.filter(l => l.category === c && l.subCategory).map(l => l.subCategory))];
+            // --- 子类列表渲染 ---
+            const subCats = [...new Set(allLinks
+                .filter(l => l.category === c && l.subCategory)
+                .map(l => l.subCategory)
+            )];
+
             if (subCats.length > 0) {
                 const subBox = document.createElement('div');
                 subBox.className = 'sub-cat-admin-list';
-                subCats.forEach(s => {
+                subCats.forEach((s) => {
                     const sRow = document.createElement('div');
-                    sRow.className = 'sub-cat-row'; sRow.draggable = true;
-                    sRow.innerHTML = `<i class="fas fa-bars drag-handle" style="font-size:12px; opacity:0.5;"></i><input type="text" value="${s}"><div class="row-btns"><button class="btn-mini blue" onclick="renameSubCat('${c}', '${s}', this)">改名</button><button class="btn-mini red" onclick="deleteSubCat('${c}', '${s}')">删除</button></div>`;
-                    sRow.ondragstart = e => { e.stopPropagation(); e.dataTransfer.setData('sub-parent', c); e.dataTransfer.setData('sub-name', s); sRow.style.opacity = '0.5'; };
+                    sRow.className = 'sub-cat-row';
+                    sRow.draggable = true; 
+                    sRow.innerHTML = `
+                        <i class="fas fa-bars drag-handle" style="font-size:12px; opacity:0.5;"></i>
+                        <input type="text" value="${s}">
+                        <div class="row-btns">
+                            <button class="btn-mini blue" onclick="renameSubCat('${c}', '${s}', this)">改名</button>
+                            <button class="btn-mini red" onclick="deleteSubCat('${c}', '${s}')">删除</button>
+                        </div>`;
+                    
+                    sRow.ondragstart = (e) => {
+                        e.stopPropagation();
+                        e.dataTransfer.setData('sub-parent', c);
+                        e.dataTransfer.setData('sub-name', s);
+                        sRow.style.opacity = '0.5';
+                    };
                     sRow.ondragend = () => sRow.style.opacity = '1';
                     sRow.ondragover = e => e.preventDefault();
-                    sRow.ondrop = async e => {
+                    sRow.ondrop = async (e) => {
                         e.preventDefault(); e.stopPropagation();
-                        const p = e.dataTransfer.getData('sub-parent'); const f = e.dataTransfer.getData('sub-name');
-                        if (p !== c || f === s) return;
-                        const otherLinks = allLinks.filter(l => !(l.category === c && l.subCategory === f));
-                        const movingLinks = allLinks.filter(l => l.category === c && l.subCategory === f);
+                        const pCat = e.dataTransfer.getData('sub-parent');
+                        const fSub = e.dataTransfer.getData('sub-name');
+                        if (pCat !== c || fSub === s) return;
+
+                        const otherLinks = allLinks.filter(l => !(l.category === c && l.subCategory === fSub));
+                        const movingLinks = allLinks.filter(l => l.category === c && l.subCategory === fSub);
                         const tPos = otherLinks.findIndex(l => l.category === c && l.subCategory === s);
-                        otherLinks.splice(tPos, 0, ...movingLinks); allLinks = otherLinks;
-                        render(); renderCatAdmin(); apiReq('updateLinksOrder', { link: allLinks }, true);
+                        otherLinks.splice(tPos, 0, ...movingLinks);
+                        allLinks = otherLinks;
+
+                        render();
+                        renderCatAdmin();
+                        apiReq('updateLinksOrder', { link: allLinks }, true);
                     };
                     subBox.appendChild(sRow);
                 });
@@ -342,15 +384,15 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     window.addSubCat = p => { const n = prompt(`为 "${p}" 添加子分类:`); if(n) apiReq('addSubCategory', { parentCategory: p, newSubCategory: n }); };
     window.renameSubCat = (p, o, btn) => { const n = btn.closest('.sub-cat-row').querySelector('input').value.trim(); if(n && n !== o) apiReq('renameSubCategory', { parentCategory: p, oldSubCategory: o, newSubCategory: n }); };
-window.deleteSubCat = (parent, sub) => {
-    if(confirm(`确定删除子分类 "${sub}"？`)) {
-        // 核心修复：删除前先将首页该大类的显示状态重置为“全部”
-        if (activeSubFilters[parent] === sub) {
-            activeSubFilters[parent] = 'all';
+    
+    window.deleteSubCat = (parent, sub) => {
+        if(confirm(`确定删除子分类 "${sub}" 吗？`)) {
+            if (activeSubFilters[parent] === sub) {
+                activeSubFilters[parent] = 'all';
+            }
+            apiReq('deleteSubCategory', { parentCategory: parent, oldSubCategory: sub });
         }
-        apiReq('deleteSubCategory', { parentCategory: parent, oldSubCategory: sub });
-    }
-};
+    };
     document.getElementById('link-form').onsubmit = async function(e) {
         e.preventDefault(); const data = Object.fromEntries(new FormData(this));
         if (!data.category) return alert("请选择一个分类！");
