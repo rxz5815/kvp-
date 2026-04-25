@@ -177,18 +177,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             };
 
+            // 渲染该分类下的所有卡片
             (grouped[cat] || []).forEach(l => {
                 const card = createCard(l);
-                // 核心修复：渲染时，如果当前记录的状态不是'all'，且卡片不属于选中的子类，则隐藏
+                
+                // 核心修复：检查当前大分类记录的选中状态
                 const currentSub = activeSubFilters[cat] || 'all';
+                
+                // 如果当前不在“全部”状态，且卡片不属于选中的子类，则隐藏它
                 if (currentSub !== 'all' && l.subCategory !== currentSub) {
                     card.style.display = 'none';
                 }
+                
                 grid.appendChild(card);
             });
-                const card = createCard(l);
-                grid.appendChild(card);
-            });
+
             main.appendChild(sec);
         });
     }
