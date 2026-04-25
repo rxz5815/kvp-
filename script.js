@@ -170,9 +170,14 @@ grid.ondrop = async function(e) {
                     const currentSub = grid.dataset.sub;
                     
                     // 设置子分类属性
-                    item.subCategory = (currentSub === 'all') ? "" : currentSub;
-                 
-                    // 核心修复：寻找插入位置，而不是简单的 push()
+                    if (currentSub !== 'all') {
+                        item.subCategory = currentSub;
+                    } else {
+                           if (item.category !== cat) {
+                            item.subCategory = ""; 
+                        }
+                    }                 
+
                     // 寻找该大类（或该小类）在 allLinks 中的最后一个索引
                     let insertIdx = -1;
                     for (let i = allLinks.length - 1; i >= 0; i--) {
@@ -244,8 +249,21 @@ card.ondrop = async (e) => {
             const item = allLinks.splice(draggedIdx, 1)[0];
             
             // 2. 继承目标位置的分类属性（支持跨类排序）
+            const grid = card.closest('.link-grid');
+            const currentSub = grid.dataset.sub;
+            const oldCat = item.category;
+
             item.category = l.category;
-            item.subCategory = l.subCategory || ""; 
+
+            // 只有在具体的子分类视图下，才强制更新子分类属性
+            if (currentSub !== 'all') {
+                item.subCategory = currentSub;
+            } else {
+                // 在“全部”视图下，如果是跨了大类排序，则清空子分类；同大类内排序则保留
+                if (oldCat !== l.category) {
+                    item.subCategory = "";
+                }
+            }
             
             // 3. 重新寻找目标卡片的当前索引（因为刚才 splice 删掉了一个元素，索引可能变了）
             const newTargetIdx = allLinks.findIndex(x => x.url === l.url);
