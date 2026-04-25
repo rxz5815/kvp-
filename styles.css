@@ -132,26 +132,98 @@ select {
 .icon-preview-box img.loaded { display: block !important; }
 
 /* 分类管理扩展 */
-.cat-admin-row { display: flex; align-items: center; background: #222; padding: 8px 12px; border-radius: 14px; margin-bottom: 12px; }
-.sub-cat-admin-list { margin-left: 40px; margin-top: -8px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
-.sub-cat-row { display: flex; align-items: center; background: #181818; padding: 6px 12px; border-radius: 10px; border: 1px solid #333; }
+.cat-admin-row {
+  display: flex;
+  align-items: center;
+  background: #222;
+  padding: 8px 12px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  min-width: 0; /* 🔥 关键：允许收缩，不挤压按钮 */
+}
+.sub-cat-admin-list {
+  margin-left: 40px;
+  margin-top: -8px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sub-cat-row {
+  display: flex;
+  align-items: center;
+  background: #181818;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  min-width: 0; /* 🔥 关键修复 */
+}
 .sub-cat-row input { font-size: 14px !important; }
 
 .drag-handle { color: #555; margin-right: 12px; cursor: grab; }
-.cat-admin-row input, .sub-cat-row input { background: transparent !important; border: none !important; flex: 1; color: #fff; height: auto !important; padding: 0 !important; }
-.row-btns { display: flex; gap: 6px; margin-left: 10px; }
-.btn-mini { padding: 4px 8px; border-radius: 6px; border: none; cursor: pointer; font-size: 11px; color: #fff; background: #444; transition: 0.2s; }
+.cat-admin-row input,
+.sub-cat-row input {
+  background: transparent !important;
+  border: none !important;
+  flex: 1;
+  color: #fff;
+  height: auto !important;
+  padding: 0 !important;
+  min-width: 0; /* 🔥 关键修复 */
+}
+
+/* 按钮组：保证永远横向不换行 */
+.row-btns {
+  display: flex !important;
+  gap: 6px !important;
+  margin-left: 10px !important;
+  flex-shrink: 0 !important; /* 🔥 最重要：按钮不被压缩 */
+}
+
+.btn-mini {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  color: #fff;
+  background: #444;
+  transition: 0.2s;
+}
 .btn-mini:hover { filter: brightness(1.2); }
 .btn-mini.blue { background: #333; border: 1px solid #444; }
 .btn-mini.blue:hover { background: var(--blue); border-color: var(--blue); }
 .btn-mini.red:hover { background: var(--red); }
 
-.scroll-area { max-height: 50vh; overflow-y: auto; padding-right: 5px; scrollbar-width: thin; scrollbar-color: #999 transparent; }
+.scroll-area {
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: #999 transparent;
+}
 .scroll-area::-webkit-scrollbar { width: 6px; }
 .scroll-area::-webkit-scrollbar-thumb { background: #999; border-radius: 99px; }
 
-.add-cat-area { display: flex; gap: 10px; padding-top: 20px; border-top: 1px solid #333; margin: 20px 1px 1px 1px; width: 100%; }
-.btn-add-cat { width: 90px; height: 45px; background: #333; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; flex-shrink: 0; }
+.add-cat-area {
+  display: flex;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid #333;
+  margin: 20px 1px 1px 1px;
+  width: 100%;
+}
+.btn-add-cat {
+  width: 90px;
+  height: 45px;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  flex-shrink: 0;
+}
 .btn-add-cat:hover { background: var(--blue); }
 
 /* 侧边按钮 */
