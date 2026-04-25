@@ -178,6 +178,7 @@ select {
 }
 .sub-cat-row input { font-size: 14px !important; }
 
+/* 侧边分类管理文字调整 */
 .drag-handle { color: #555; margin-right: 12px; cursor: grab; }
 .cat-admin-row input,
 .sub-cat-row input {
@@ -186,7 +187,8 @@ select {
   flex: 1;
   color: #fff;
   height: auto !important;
-  padding: 0 !important;
+  padding: 0 8px !important; 
+  font-size: 15px !important;
 }
 
 /* 按钮组：保证永远横向不换行 */
