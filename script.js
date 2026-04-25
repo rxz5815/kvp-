@@ -386,7 +386,7 @@ function renderCatAdmin() {
     window.renameSubCat = (p, o, btn) => { const n = btn.closest('.sub-cat-row').querySelector('input').value.trim(); if(n && n !== o) apiReq('renameSubCategory', { parentCategory: p, oldSubCategory: o, newSubCategory: n }); };
     
     window.deleteSubCat = (parent, sub) => {
-        if(confirm(`确定删除子分类 "${sub}" 吗？`)) {
+        if(confirm(`确定删除子分类 "${sub}" 吗？其下站点将失去子分类属性。`)) {
             if (activeSubFilters[parent] === sub) {
                 activeSubFilters[parent] = 'all';
             }
