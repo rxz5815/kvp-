@@ -235,7 +235,7 @@ select {
   border-top: 1px solid #333;
   margin: 20px 1px 1px 1px;
   width: 100%;
-  justify-content: center;
+  justify-content: flex-start;
 }
 .btn-add-cat {
   width: 23%;
