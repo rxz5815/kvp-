@@ -96,11 +96,46 @@ body.is-searching .category-header, body.is-searching #sticky-nav { display: non
 .link-card:hover .card-del { display: flex; }
 .card-del:hover { background: var(--red) !important; color: #fff; }
 
-/* 弹窗核心 */
+/* 搜索弹窗核心 */
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; justify-content: center; align-items: center; }
 .modal-overlay { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); }
-.modal-body { background: #1a1a1a; padding: 45px 35px 35px 35px; border-radius: 24px; width: 90%; max-width: 440px; border: 1px solid #333; position: relative; z-index: 10; box-shadow: var(--shadow); }
+/* 弹窗核心 */
+.modal-body { 
+  background: #1a1a1a; 
+  padding: 45px 35px 35px 35px; 
+  border-radius: 24px; 
+  width: 90%; 
+  max-width: 440px; 
+  border: 1px solid #333; 
+  position: relative; 
+  z-index: 10; 
+  box-shadow: var(--shadow); }
 .modal-title-center { text-align: center !important; margin-bottom: 30px; font-weight: 500; font-size: 20px; display: block; width: 100%; }
+
+
+/* 搜索结果 */
+.search-modal-container { max-width: 600px; display: flex; flex-direction: column; max-height: 85vh; }
+#modal-results-area {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 10px;
+  padding-top: 10px;
+  padding-bottom: 0;
+
+  /* Firefox 美化 */
+  scrollbar-width: thin;
+  scrollbar-color: #999 transparent;
+}
+
+/* Chrome / Edge 美化（细、好看、不丑） */
+#modal-results-area::-webkit-scrollbar { width: 6px; }
+#modal-results-area::-webkit-scrollbar-track { background: transparent; }
+#modal-results-area::-webkit-scrollbar-thumb { background: #999; border-radius: 99px; }
+
+/* 保存按钮 */
+.save-btn-new { width: 100% !important; height: 52px !important; background: #333 !important; border: none !important; color: #fff !important; border-radius: 14px !important; font-weight: bold !important; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
+.save-btn-new:hover { background: var(--red) !important; transform: translateY(-4px); font-weight: 900; box-shadow: 0 5px 15px rgba(255, 77, 79, 0.4); }
+
 
 /* 编辑站点对齐 */
 .modal-row { display: flex !important;
