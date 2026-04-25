@@ -127,9 +127,25 @@ select {
 .full-width-input { width: 100% !important; margin-bottom: 15px !important; display: block; flex: none !important; }
 
 /* 图标预览 */
-.icon-preview-box { width: 50px !important; height: 50px !important; background: #000 !important; border-radius: 12px !important; border: 1px solid #333 !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; overflow: hidden !important; }
-.icon-preview-box img { width: 28px; height: 28px; object-fit: contain; display: none; }
-.icon-preview-box img.loaded { display: block !important; }
+.icon-preview-box {   
+  width: 25%;
+  width: 48px !important; 
+  height: 50px !important; 
+  background: #000 !important; 
+  border-radius: 12px !important; 
+  border: 1px solid #333 !important; 
+  display: flex !important; 
+  align-items: center !important; 
+  justify-content: center !important; 
+  flex-shrink: 0 !important; 
+  overflow: hidden !important; }
+.icon-preview-box img { 
+  width: 28px; 
+  height: 28px; 
+  object-fit: contain; 
+  display: none; }
+.icon-preview-box img.loaded { 
+  display: block !important; }
 
 /* 分类管理扩展 */
 .cat-admin-row {
@@ -139,6 +155,7 @@ select {
   padding: 12px 12px;
   border-radius: 14px;
   margin-bottom: 12px;
+  border: 1px solid #383838;
 }
 .sub-cat-admin-list {
   margin-left: 20px;
@@ -153,7 +170,7 @@ select {
   background: #181818;
   padding: 6px 11px 6px 12px;
   border-radius: 10px;
-  border: 1px solid #333;
+  border: 2px solid #2c2b2b;
 }
 .sub-cat-row input { font-size: 14px !important; }
 
@@ -211,7 +228,7 @@ select {
   width: 100%;
 }
 .btn-add-cat {
-  width: 90px;
+  width: 25%;
   height: 45px;
   background: #333;
   color: #fff;
