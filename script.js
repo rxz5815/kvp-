@@ -207,10 +207,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const item = allLinks.splice(draggedIdx, 1)[0];
                 item.category = l.category; 
-                item.subCategory = l.subCategory; // 拖拽到卡片上，自动继承该卡片的二级分类
-                
-                const item = allLinks.splice(draggedIdx, 1)[0];
-                item.category = l.category; 
                 // 确保继承目标图标的子分类，如果没有则设为空字符串，防止 undefined 污染
                 item.subCategory = l.subCategory || "";
                 
