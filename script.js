@@ -295,6 +295,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 render(); renderCatAdmin(); apiReq('updateOrder', { order: categoryOrder }, true);
             };
             box.appendChild(row);
+
+                        const subCats = [...new Set(allLinks.filter(l => l.category === c && l.subCategory).map(l => l.subCategory))];
+            if (subCats.length > 0) {
+                const subBox = document.createElement('div');
+                subBox.className = 'sub-cat-admin-list';
+                subCats.forEach(s => {
+                    const sRow = document.createElement('div');
+                    sRow.className = 'sub-cat-row'; sRow.draggable = true;
+                    sRow.innerHTML = `<i class="fas fa-bars drag-handle" style="font-size:12px; opacity:0.5;"></i><input type="text" value="${s}"><div class="row-btns"><button class="btn-mini blue" onclick="renameSubCat('${c}', '${s}', this)">改名</button><button class="btn-mini red" onclick="deleteSubCat('${c}', '${s}')">删除</button></div>`;
+                    sRow.ondragstart = e => { e.stopPropagation(); e.dataTransfer.setData('sub-parent', c); e.dataTransfer.setData('sub-name', s); sRow.style.opacity = '0.5'; };
+                    sRow.ondragend = () => sRow.style.opacity = '1';
+                    sRow.ondragover = e => e.preventDefault();
+                    sRow.ondrop = async e => {
+                        e.preventDefault(); e.stopPropagation();
+                        const p = e.dataTransfer.getData('sub-parent'); const f = e.dataTransfer.getData('sub-name');
+                        if (p !== c || f === s) return;
+                        const otherLinks = allLinks.filter(l => !(l.category === c && l.subCategory === f));
+                        const movingLinks = allLinks.filter(l => l.category === c && l.subCategory === f);
+                        const tPos = otherLinks.findIndex(l => l.category === c && l.subCategory === s);
+                        otherLinks.splice(tPos, 0, ...movingLinks); allLinks = otherLinks;
+                        render(); renderCatAdmin(); apiReq('updateLinksOrder', { link: allLinks }, true);
+                    };
+                    subBox.appendChild(sRow);
+                });
+                box.appendChild(subBox);
+            }
         });
     }
 
