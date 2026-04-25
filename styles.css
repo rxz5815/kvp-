@@ -139,7 +139,6 @@ select {
   padding: 8px 12px;
   border-radius: 14px;
   margin-bottom: 12px;
-  min-width: 0; /* 🔥 关键：允许收缩，不挤压按钮 */
 }
 .sub-cat-admin-list {
   margin-left: 40px;
@@ -156,7 +155,6 @@ select {
   padding: 6px 12px;
   border-radius: 10px;
   border: 1px solid #333;
-  min-width: 0; /* 🔥 关键修复 */
 }
 .sub-cat-row input { font-size: 14px !important; }
 
@@ -169,15 +167,14 @@ select {
   color: #fff;
   height: auto !important;
   padding: 0 !important;
-  min-width: 0; /* 🔥 关键修复 */
 }
 
 /* 按钮组：保证永远横向不换行 */
 .row-btns {
-  display: flex !important;
-  gap: 6px !important;
-  margin-left: 10px !important;
-  flex-shrink: 0 !important; /* 🔥 最重要：按钮不被压缩 */
+  display: flex;
+  gap: 6px;
+  margin-left: 10px;
+  flex-shrink: 0;
 }
 
 .btn-mini {
