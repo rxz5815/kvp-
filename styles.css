@@ -110,7 +110,7 @@ body.is-searching .category-header, body.is-searching #sticky-nav { display: non
     border: 1px solid #333 !important; 
     color: #fff !important; 
     border-radius: 12px !important; 
-    padding: 0 15px !important; 
+    padding: 0 50px 0px 15px !important; 
     font-size: 15px !important; 
     outline: none !important; 
     box-sizing: border-box !important;
