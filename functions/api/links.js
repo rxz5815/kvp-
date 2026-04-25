@@ -59,11 +59,12 @@ export async function onRequest(context) {
       links = links.map(l => (l.category === parentCategory && l.subCategory === oldSubCategory) ? { ...l, subCategory: newSubCategory } : l);
       break;
 
-    case 'deleteSubCategory':
-      // 这里的逻辑是将子分类标签设为空，保留站点；或者直接删除占位符
-      links = links.map(l => (l.category === parentCategory && l.subCategory === oldSubCategory) ? { ...l, subCategory: "" } : l);
-      links = links.filter(l => !(l.title === 'placeholder_hidden' && l.url.includes('placeholder_sub')));
-      break;
+case 'deleteSubCategory':
+  // 1. 将该子分类下的真实站点变回普通站点
+  links = links.map(l => (l.category === parentCategory && l.subCategory === oldSubCategory) ? { ...l, subCategory: "" } : l);
+  // 2. 只删除属于当前大类、且名字匹配的那个子分类占位符
+  links = links.filter(l => !(l.title === 'placeholder_hidden' && l.category === parentCategory && l.subCategory === oldSubCategory));
+  break;
 
 case 'save':
       // 保留空分类的支撑
