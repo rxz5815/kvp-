@@ -103,7 +103,11 @@ body.is-searching .category-header, body.is-searching #sticky-nav { display: non
 .modal-title-center { text-align: center !important; margin-bottom: 30px; font-weight: 500; font-size: 20px; display: block; width: 100%; }
 
 /* 编辑站点对齐 */
-.modal-row { display: flex !important; gap: 12px !important; margin-bottom: 15px !important; width: 100% !important; align-items: stretch !important; }
+.modal-row { display: flex !important;
+            gap: 12px !important; 
+            margin-bottom: 15px !important; 
+            width: 100% !important; 
+            align-items: stretch !important; }
 .modern-modal input, .modern-modal select { 
     height: 50px !important; 
     background: #000 !important; 
@@ -226,6 +230,7 @@ select {
   border-top: 1px solid #333;
   margin: 20px 1px 1px 1px;
   width: 100%;
+  justify-content: center;
 }
 .btn-add-cat {
   width: 23%;
