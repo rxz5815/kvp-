@@ -46,8 +46,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             allLinks = data.links || [];
             categoryOrder = data.order || [];
-            render();
-        } catch (e) { render(); }
+            render(); // 刷新首页
+            
+            // 如果分类管理弹窗是打开状态，则刷新它
+            if (document.getElementById('modal-cat').style.display === 'flex') {
+                renderCatAdmin();
+            }
+        } catch (e) { 
+            render(); 
+        }
     }
     fetchData();
 
