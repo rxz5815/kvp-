@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
             grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
             grid.ondragleave = () => grid.classList.remove('drag-over');
 
-            grid.ondrop = async function(e) {
+grid.ondrop = async function(e) {
                 grid.classList.remove('drag-over');
                 const url = e.dataTransfer.getData('text/plain');
                 const itemIdx = allLinks.findIndex(l => l.url === url);
@@ -168,15 +168,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     const item = allLinks.splice(itemIdx, 1)[0];
                     item.category = cat;
                     const currentSub = grid.dataset.sub;
-                    // 如果是拖入“全部”视图，强制清空子分类；否则设为当前子分类名称
+                    
+                    // 设置子分类属性
                     item.subCategory = (currentSub === 'all') ? "" : currentSub;
                  
-                    allLinks.push(item); 
+                    // 核心修复：寻找插入位置，而不是简单的 push()
+                    // 寻找该大类（或该小类）在 allLinks 中的最后一个索引
+                    let insertIdx = -1;
+                    for (let i = allLinks.length - 1; i >= 0; i--) {
+                        if (allLinks[i].category === cat) {
+                            if (currentSub === 'all' || allLinks[i].subCategory === currentSub) {
+                                insertIdx = i + 1;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (insertIdx === -1) allLinks.push(item);
+                    else allLinks.splice(insertIdx, 0, item);
+
                     render();
                     apiReq('updateLinksOrder', { link: allLinks }, true);
                 }
             };
-
+            
             // 渲染该分类下的所有卡片
             (grouped[cat] || []).forEach(l => {
                 const card = createCard(l);
@@ -214,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         card.ondragleave = () => card.classList.remove('drag-insert-before');
 
-        card.ondrop = async (e) => {
+card.ondrop = async (e) => {
             e.preventDefault();
             card.classList.remove('drag-insert-before');
             const draggedUrl = e.dataTransfer.getData('text/plain');
@@ -222,14 +237,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const draggedIdx = allLinks.findIndex(x => x.url === draggedUrl);
             const targetIdx = allLinks.findIndex(x => x.url === l.url);
+
             if (draggedIdx > -1 && targetIdx > -1) {
-                
                 const item = allLinks.splice(draggedIdx, 1)[0];
-                item.category = l.category; 
-                // 确保继承目标图标的子分类，如果没有则设为空字符串，防止 undefined 污染
-                item.subCategory = l.subCategory || "";
                 
-                allLinks.splice(targetIdx, 0, item);
+                // 核心逻辑：继承目标卡片的分类信息，确保在“全部”和“小分类”视图下表现一致
+                item.category = l.category;
+                item.subCategory = l.subCategory || ""; 
+                
+                // 获取当前删除后新的目标索引位置
+                const newTargetIdx = allLinks.findIndex(x => x.url === l.url);
+                allLinks.splice(newTargetIdx, 0, item);
+                
                 render(); 
                 apiReq('updateLinksOrder', { link: allLinks }, true);
             }
