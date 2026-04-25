@@ -377,7 +377,7 @@ card.ondrop = async (e) => {
 
     document.getElementById('btn-cat-admin').onclick = () => { renderCatAdmin(); document.getElementById('modal-cat').style.display = 'flex'; };
 
-    function renderCatAdmin() {
+function renderCatAdmin() {
         const box = document.getElementById('cat-list-box');
         if (!box) return;
         box.innerHTML = '';
@@ -387,6 +387,7 @@ card.ondrop = async (e) => {
         cats.forEach(c => { if(!sortedCats.includes(c)) sortedCats.push(c); });
 
         sortedCats.forEach((c, idx) => {
+            // --- 大类行 ---
             const row = document.createElement('div');
             row.className = 'cat-admin-row'; row.draggable = true;
             row.innerHTML = `
@@ -398,23 +399,87 @@ card.ondrop = async (e) => {
                     <button class="btn-mini red" onclick="deleteCat('${c}')">删除</button>
                 </div>`;
             
-            row.ondragstart = (e) => { e.dataTransfer.setData('idx', idx); row.style.opacity = '0.5'; };
+            row.ondragstart = (e) => { e.dataTransfer.setData('cat-idx', idx); row.style.opacity = '0.5'; };
             row.ondragend = () => row.style.opacity = '1';
             row.ondragover = e => e.preventDefault();
             row.ondrop = async (e) => {
+                const from = e.dataTransfer.getData('cat-idx');
+                if (from === "") return; // 防止小类掉到大类上
                 e.preventDefault();
-                const from = parseInt(e.dataTransfer.getData('idx'));
-                const to = idx;
-                if (from === to) return;
+                const fromIdx = parseInt(from);
+                if (fromIdx === idx) return;
                 const newOrder = [...sortedCats];
-                const [movedItem] = newOrder.splice(from, 1);
-                newOrder.splice(to, 0, movedItem);
+                const [movedItem] = newOrder.splice(fromIdx, 1);
+                newOrder.splice(idx, 0, movedItem);
                 categoryOrder = newOrder;
                 render();
                 renderCatAdmin();
                 apiReq('updateOrder', { order: categoryOrder }, true);
             };
             box.appendChild(row);
+
+            // --- 小类列表 ---
+            const subCats = [...new Set(allLinks
+                .filter(l => l.category === c && l.subCategory)
+                .map(l => l.subCategory)
+            )];
+
+            if (subCats.length > 0) {
+                const subBox = document.createElement('div');
+                subBox.className = 'sub-cat-admin-list';
+                subCats.forEach((s, sIdx) => {
+                    const sRow = document.createElement('div');
+                    sRow.className = 'sub-cat-row';
+                    sRow.draggable = true; // 开启拖拽
+                    sRow.innerHTML = `
+                        <i class="fas fa-bars drag-handle" style="font-size:12px; opacity:0.5;"></i>
+                        <input type="text" value="${s}">
+                        <div class="row-btns">
+                            <button class="btn-mini blue" onclick="renameSubCat('${c}', '${s}', this)">改名</button>
+                            <button class="btn-mini red" onclick="deleteSubCat('${c}', '${s}')">删除</button>
+                        </div>`;
+                    
+                    // 小类拖拽开始
+                    sRow.ondragstart = (e) => {
+                        e.stopPropagation();
+                        e.dataTransfer.setData('sub-parent', c);
+                        e.dataTransfer.setData('sub-name', s);
+                        sRow.style.opacity = '0.5';
+                    };
+                    sRow.ondragend = () => sRow.style.opacity = '1';
+                    sRow.ondragover = e => e.preventDefault();
+                    
+                    // 小类拖拽释放（排序逻辑）
+                    sRow.ondrop = async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const parentCat = e.dataTransfer.getData('sub-parent');
+                        const fromSubName = e.dataTransfer.getData('sub-name');
+                        
+                        if (parentCat !== c || fromSubName === s) return; // 仅限同大类内排序
+
+                        // 核心排序逻辑：重排 allLinks 中该小类所有站点的顺序
+                        const otherLinks = allLinks.filter(l => !(l.category === c && l.subCategory === fromSubName));
+                        const movingLinks = allLinks.filter(l => l.category === c && l.subCategory === fromSubName);
+                        
+                        // 找到目标小类在剩余数组中的第一个位置
+                        const targetPos = otherLinks.findIndex(l => l.category === c && l.subCategory === s);
+                        
+                        // 将移动的站点插入到目标位置之前或之后
+                        otherLinks.splice(targetPos, 0, ...movingLinks);
+                        allLinks = otherLinks;
+
+                        render();
+                        renderCatAdmin();
+                        apiReq('updateLinksOrder', { link: allLinks }, true);
+                    };
+
+                    subBox.appendChild(sRow);
+                });
+                box.appendChild(subBox);
+            }
+        });
+    }
 
             // 渲染二级分类
             const subCats = [...new Set(allLinks
