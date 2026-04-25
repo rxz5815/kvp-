@@ -342,8 +342,15 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     window.addSubCat = p => { const n = prompt(`为 "${p}" 添加子分类:`); if(n) apiReq('addSubCategory', { parentCategory: p, newSubCategory: n }); };
     window.renameSubCat = (p, o, btn) => { const n = btn.closest('.sub-cat-row').querySelector('input').value.trim(); if(n && n !== o) apiReq('renameSubCategory', { parentCategory: p, oldSubCategory: o, newSubCategory: n }); };
-    window.deleteSubCat = (p, s) => confirm(`确定删除子分类 "${s}"？`) && apiReq('deleteSubCategory', { parentCategory: p, oldSubCategory: s });
-
+window.deleteSubCat = (parent, sub) => {
+    if(confirm(`确定删除子分类 "${s}"？`)) {
+        // 核心修复：删除前先将首页该大类的显示状态重置为“全部”
+        if (activeSubFilters[parent] === sub) {
+            activeSubFilters[parent] = 'all';
+        }
+        apiReq('deleteSubCategory', { parentCategory: parent, oldSubCategory: sub });
+    }
+};
     document.getElementById('link-form').onsubmit = async function(e) {
         e.preventDefault(); const data = Object.fromEntries(new FormData(this));
         if (!data.category) return alert("请选择一个分类！");
