@@ -101,17 +101,25 @@ document.addEventListener('DOMContentLoaded', function() {
             sec.innerHTML = `<div class="category-header"><h2 class="category-title">${cat}</h2>${subFilterHtml}</div><div class="link-grid" data-cat="${cat}" data-sub="${currentSub}"></div>`;
             const grid = sec.querySelector('.link-grid');
             
-            sec.querySelectorAll('.sub-cat-item').forEach(item => {
-                item.onclick = () => {
+// 绑定子分类切换逻辑：支持点击 + 鼠标划过
+            sec。querySelectorAll('.sub-cat-item').forEach(item => {
+                const switchSub = () => {
                     const subTarget = item.dataset.sub;
-                    activeSubFilters[cat] = subTarget;
+                    // 如果已经是当前选中的，则不重复执行，防止闪烁
+                    if (activeSubFilters[cat] === subTarget && item.classList.contains('active')) return;
+
+                    activeSubFilters[cat] = subTarget; 
                     sec.querySelectorAll('.sub-cat-item').forEach(i => i.classList.remove('active'));
                     item.classList.add('active');
                     grid.dataset.sub = subTarget;
+    
                     grid.querySelectorAll('.link-card').forEach(card => {
                         card.style.display = (subTarget === 'all' || card.dataset.sub === subTarget) ? '' : 'none';
                     });
                 };
+
+                item.onclick = switchSub;      // 保留点击，兼容移动端
+                item.onmouseenter = switchSub; // 核心优化：鼠标移入即触发切换
             });
 
             grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag-over'); };
