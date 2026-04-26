@@ -9,11 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const grads = [
         'linear-gradient(to right, #667db6,#0082c8,#667db6)',
-        'linear-gradient(to right, #c6ffdd,#fbd786,#f7797d)',
-        'linear-gradient(to right, #12c2e9,#c471ed,#f64f59)',
         'linear-gradient(to right, #373b44,#4286f4)',
-        'linear-gradient(to right, #654ea3,#eaafc8)',
-        'linear-gradient(to right, #00b4db,#0083b0)',
         'linear-gradient(to right, #355c7d,#6c5b7b,#c06c84)',
         'linear-gradient(to right, #0f0c29,#302b63,#24243e)',
         'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)', 
