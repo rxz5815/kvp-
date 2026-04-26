@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const grid = sec.querySelector('.link-grid');
             
 // 绑定子分类切换逻辑：支持点击 + 鼠标划过
-            sec。querySelectorAll('.sub-cat-item').forEach(item => {
+            sec.querySelectorAll('.sub-cat-item').forEach(item => {
                 const switchSub = () => {
                     const subTarget = item.dataset.sub;
                     // 如果已经是当前选中的，则不重复执行，防止闪烁
