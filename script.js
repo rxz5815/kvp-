@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'linear-gradient(to right, #654ea3,#eaafc8)',
         'linear-gradient(to right, #00b4db,#0083b0)',
         'linear-gradient(to right, #355c7d,#6c5b7b,#c06c84)',
-        'linear-gradient(to right, #0f0c29,#302b63,#24243e)'，    
+        'linear-gradient(to right, #0f0c29,#302b63,#24243e)',
         'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)', 
         'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
         'linear-gradient(135deg, #202124 0%, #3c4043 100%)', 
