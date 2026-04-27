@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     updateBg(localStorage.getItem('nav_bg_v18') || grads[0]);
 
-    document。getElementById('btn-toggle-bg').onclick = () => {
+    document.getElementById('btn-toggle-bg').onclick = () => {
         let curr = localStorage.getItem('nav_bg_v18');
         let nextIdx = (grads.indexOf(curr) + 1) % grads.length;
         updateBg(grads[nextIdx]);
