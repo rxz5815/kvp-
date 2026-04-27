@@ -185,6 +185,9 @@ if (iconSrc.includes('google.com')) {
 }
 
 card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${iconSrc}" onerror="this.src='https://api.iowen.cn/favicon/github.com.png'"><h3>${l.title}</h3>`;
+        // 结束
+
+        
         card.onclick = () => window.open(l.url, '_blank');
         card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
 
