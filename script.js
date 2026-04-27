@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     updateBg(localStorage.getItem('nav_bg_v18') || grads[0]);
 
-    document.getElementById('btn-toggle-bg').onclick = () => {
+    document。getElementById('btn-toggle-bg').onclick = () => {
         let curr = localStorage.getItem('nav_bg_v18');
         let nextIdx = (grads.indexOf(curr) + 1) % grads.length;
         updateBg(grads[nextIdx]);
@@ -172,12 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
         card.className = 'link-card'; card.draggable = true;
         card.dataset.sub = l.subCategory || "";
         if (l.desc) card.setAttribute('data-desc', l.desc);
-        
-        // Favicon图标 图标
-card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
-        // 结束
-
-        
+        card.innerHTML = `<div class="card-del" onclick="deleteSite(event, '${l.url}')">&times;</div><img src="${l.icon}" onerror="this.src='https://www.google.com/s2/favicons?domain=github.com&sz=64'"><h3>${l.title}</h3>`;
         card.onclick = () => window.open(l.url, '_blank');
         card.oncontextmenu = (e) => { e.preventDefault(); openEdit(l); };
 
